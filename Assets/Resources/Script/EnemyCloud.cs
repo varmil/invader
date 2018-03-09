@@ -25,8 +25,8 @@ public class EnemyCloud : MonoBehaviour {
 
 	public float RightEnd {
 		get {
-//			Debug.Log ("Cloud RightEnd::" + Mathf.Max (Lines.Select ((e) => e.RightEnd).ToArray()).ToString());
-			return Mathf.Max (Lines.Select ((e) => e.RightEnd).ToArray());
+			Debug.Log ("Cloud RightEnd::" + Mathf.Max (Lines.Select ((l) => l.RightEnd).ToArray()).ToString());
+			return Mathf.Max (Lines.Select ((l) => l.RightEnd).ToArray());
 		}
 	}
 

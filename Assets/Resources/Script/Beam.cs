@@ -1,28 +1,46 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 
 /**
- * Enemyが射出するビーム
+ * Enemy, Player が射出するビーム
  */
 public class Beam : MonoBehaviour {
-	// BeamObjectを開放するY座標。
-	private static readonly float ReleaseYPos = -20f;
-	private static readonly float Speed = 0.2f;
+	// ここまで到達したらビームをプールに戻す
+	[SerializeField]
+	private float releaseYPos = -20f;
+
+	// 弾速
+	[SerializeField]
+	private float speed = 0.2f;
+
+	// ビームが進む方向
+	[SerializeField]
+	private BeamVector Direction;
+
+	enum BeamVector : byte
+	{
+		Up,
+		Down
+	}
+
+	public Action<Collider> OnCollided { get; set; }
 
 	void Update () {
-		transform.position += Vector3.down * Speed;
+		var vector = (Direction == BeamVector.Down) ? Vector3.down : Vector3.up;
+		transform.position += vector * speed;
 
-		if (transform.position.y < ReleaseYPos) {
+		if (Direction == BeamVector.Down && transform.position.y < releaseYPos) {
+			ObjectPool.Instance.Release (gameObject);
+		}
+
+		if (Direction == BeamVector.Up && transform.position.y > releaseYPos) {
 			ObjectPool.Instance.Release (gameObject);
 		}
 	}
 
-	// 弾が何らかのトリガーに当たった時に呼び出される
 	void OnTriggerEnter (Collider other)
 	{
-		Debug.Log ("Beam collide other:: " + other.gameObject.name);
-
-		// 弾の削除。実際には非アクティブにする
-		ObjectPool.Instance.Release (gameObject);
+		OnCollided(other);
 	}
 }

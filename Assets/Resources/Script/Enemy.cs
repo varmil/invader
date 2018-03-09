@@ -10,7 +10,8 @@ public class Enemy : MonoBehaviour {
 
 	// 生存しているか
 	public bool Alive {
-		get { return true; }
+		get;
+		private set;
 	}
 
 	public float Height {
@@ -20,15 +21,28 @@ public class Enemy : MonoBehaviour {
 	private GameObject beamPrefab;
 
 	void Awake () {
-		beamPrefab = (GameObject)Resources.Load ("Prefab/Beam");
+		beamPrefab = (GameObject)Resources.Load ("Prefab/EnemyBeam");
+		this.Alive = true;
 	}
 
-	// Fire the beam
 	public void Fire() {
-		Debug.Log ("Fire! " + this.Id);
-
 		var myPos = this.transform.position;
 		var beamPos = myPos + (Vector3.down * Height * BeamOffsetYRate);
 		var obj = ObjectPool.Instance.Get (beamPrefab, beamPos, Quaternion.identity);			
+
+		// beam callback
+		obj.GetComponent<Beam> ().OnCollided = (other) => {
+			ObjectPool.Instance.Release (obj);
+		};
 	}
+
+	public void Dead() {
+		this.Alive = false;
+		this.gameObject.SetActive (false);
+	}
+
+//	void OnTriggerEnter (Collider other)
+//	{
+//		Debug.Log ("Enemy OBJ collide other:: " + other.gameObject.name);
+//	}
 }

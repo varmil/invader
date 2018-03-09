@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 
 public class ObjectPool : MonoBehaviour
@@ -44,7 +45,6 @@ public class ObjectPool : MonoBehaviour
 		GameObject go = null;
 
 		for (int i = 0; i < gameObjects.Count; i++) {
-
 			go = gameObjects [i];
 
 			// 現在非アクティブ（未使用）であれば
@@ -80,5 +80,14 @@ public class ObjectPool : MonoBehaviour
 	{
 		// 非アクティブにする
 		go.SetActive (false);
+	}
+
+	public int CountActive (GameObject prefab)
+	{
+		int key = prefab.GetInstanceID ();
+
+		if (pooledGameObjects.ContainsKey (key) == false) return 0;
+
+		return pooledGameObjects[key].Count((go) => go.activeInHierarchy);
 	}
 }

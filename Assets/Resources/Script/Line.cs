@@ -18,6 +18,11 @@ public class Line : MonoBehaviour {
 	public List<Enemy> Enemies {
 		get { return enemies; }
 	}
+
+	public IEnumerable<Enemy> AliveEnemies {
+		get { return Enemies.Where (e => e.Alive); }
+	}
+
 	private List<Enemy> enemies = new List<Enemy>(11);
 
 	private GameObject basicEnemyPrefab;
@@ -29,7 +34,7 @@ public class Line : MonoBehaviour {
 	public float RightEnd {
 		get { 
 			var myPos = this.transform.position.x;
-			var offset = Mathf.Max (enemies.Select ((e) => e.transform.position.x).ToArray());
+			var offset = Mathf.Max (AliveEnemies.Select ((e) => e.transform.localPosition.x).ToArray());
 			return myPos + offset; 
 		}
 	}
@@ -37,7 +42,7 @@ public class Line : MonoBehaviour {
 	public float LeftEnd {
 		get { 
 			var myPos = this.transform.position.x;
-			var offset = Mathf.Min (enemies.Select ((e) => e.transform.position.x).ToArray());
+			var offset = Mathf.Min (AliveEnemies.Select ((e) => e.transform.localPosition.x).ToArray());
 			return myPos + offset; 
 		}
 	}
