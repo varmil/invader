@@ -8,9 +8,6 @@ using System.Collections.Generic;
  * 敵が動きうるゾーン全体
  */
 public class EnemyZone : MonoBehaviour {
-	// Zoneの端座標(X)
-	private static readonly float RightEnd = 10f;
-	private static readonly float LeftEnd = -10f;
 	// 移動終了後から次の移動までの秒間隔
 	// TODO: speed up gradually
 	private static readonly float MovingInterval = .1f;
@@ -83,10 +80,10 @@ public class EnemyZone : MonoBehaviour {
 	}
 
 	private bool IsReachedRightEnd() {
-		return this.enemyCloud.RightEnd >= RightEnd;
+		return this.enemyCloud.RightEnd >= Constants.Stage.RightEnd;
 	}
 
 	private bool IsReachedLeftEnd() {
-		return this.enemyCloud.LeftEnd <= LeftEnd;
+		return this.enemyCloud.LeftEnd <= Constants.Stage.LeftEnd;
 	}
 }

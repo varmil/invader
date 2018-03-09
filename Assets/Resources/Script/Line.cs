@@ -15,8 +15,12 @@ public class Line : MonoBehaviour {
 	// 敵の初期位置をセンタリングするためのオフセット
 	private static readonly float OffsetX = EnemyXSpace * (EnemyAmountPerLine - 1) / 2;
 
+	public List<Enemy> Enemies {
+		get { return enemies; }
+	}
+	private List<Enemy> enemies = new List<Enemy>(11);
+
 	private GameObject basicEnemyPrefab;
-	private List<GameObject> enemies = new List<GameObject>(11);
 
 	void Awake () {
 		basicEnemyPrefab = (GameObject)Resources.Load ("Prefab/Enemy");
@@ -38,12 +42,15 @@ public class Line : MonoBehaviour {
 		}
 	}
 
-	public IEnumerable<GameObject> CreateEnemies() {
+	public IEnumerable<Enemy> CreateEnemies() {
 		for (int i = 0; i < EnemyAmountPerLine; i++) {
 			var position = new Vector3((float)(i * EnemyXSpace - OffsetX), 0f, 0f);
 			var obj = (GameObject)Instantiate (basicEnemyPrefab, position, Quaternion.identity);			
 			obj.transform.SetParent(this.transform, false);
-			enemies.Add (obj);
+
+			var enemy = obj.GetComponent<Enemy> ();
+			enemy.Id = this.name + "-enemy::" + i;
+			enemies.Add (enemy);
 		}
 		return enemies;
 	}

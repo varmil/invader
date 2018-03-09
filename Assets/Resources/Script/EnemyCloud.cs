@@ -14,26 +14,30 @@ public class EnemyCloud : MonoBehaviour {
 	private static readonly float MovingAmountX = 0.25f;
 	// 最も高い位置の初期Y座標
 	private static readonly float FirstLineYPos = 15f;
+	// 敵のbeam発射間隔ベース値
+	private static readonly float BaseFiringIntervalSec = 1.0f;
 
+	// 横方向の行
 	public List<Line> Lines {
 		get { return lines; }
 	}
+	private List<Line> lines = new List<Line>(5);
 
 	public float RightEnd {
 		get {
-			Debug.Log ("Cloud RightEnd::" + Mathf.Max (Lines.Select ((e) => e.RightEnd).ToArray()).ToString());
+//			Debug.Log ("Cloud RightEnd::" + Mathf.Max (Lines.Select ((e) => e.RightEnd).ToArray()).ToString());
 			return Mathf.Max (Lines.Select ((e) => e.RightEnd).ToArray());
 		}
 	}
 
 	public float LeftEnd {
 		get { 
-			Debug.Log ("Cloud LeftEnd::" + Mathf.Min (Lines.Select ((e) => e.LeftEnd).ToArray()).ToString());
+//			Debug.Log ("Cloud LeftEnd::" + Mathf.Min (Lines.Select ((e) => e.LeftEnd).ToArray()).ToString());
 			return Mathf.Min (Lines.Select ((e) => e.LeftEnd).ToArray());
 		}
 	}
 
-	private List<Line> lines = new List<Line>(5);
+	private BeamManager beamManager;
 
 	void Awake () {
 		this.lines.Add(transform.Find ("1st").GetComponent<Line>());
@@ -49,8 +53,14 @@ public class EnemyCloud : MonoBehaviour {
 			.Range (0, this.Lines.Count)
 			.Select ((i) => this.lines[i].CreateEnemies())
 			.ToArray ();
+
+		// instantiate POCO
+		this.beamManager = new BeamManager(this.Lines);
+
+		// go coroutine
+		StartCoroutine(StartFiring());
 	}
-		
+
 	public IEnumerator MoveRight() {
 		for (int i = this.Lines.Count - 1; i >= 0; i--) {
 			this.lines[i].transform.position += new Vector3(MovingAmountX, 0);
@@ -75,6 +85,16 @@ public class EnemyCloud : MonoBehaviour {
 	private void SetLinesInitialPosition() {
 		for (int i = 0; i < this.lines.Count; i++) {
 			this.lines[i].transform.position = new Vector3 (0f, FirstLineYPos - (i * 1.5f), 0f);
+		}
+	}
+
+	private IEnumerator StartFiring() {
+		while (true) {
+			// TODO: randomize
+			yield return new WaitForSeconds(BaseFiringIntervalSec);
+			var enemy = this.beamManager.GetRandomFireableEnemy ();
+			enemy.Fire ();
+//			Debug.Log (string.Join(", ", beamManager.GetFireableEnemies ().Select(e => e.Id).ToArray()));
 		}
 	}
 }
