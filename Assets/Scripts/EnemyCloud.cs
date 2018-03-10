@@ -13,16 +13,8 @@ public class EnemyCloud : MonoBehaviour
     // 敵のbeam発射間隔ベース値
     private static readonly float BaseFiringIntervalSec = 0.8f;
 
-    // １回の移動でどの程度X軸方向に動くか
-    private float MovingAmountX
-    {
-        get
-        {
-            return .25f + (.5f * (1f / AliveEnemies.Count()));
-        }
-    }
-
     // 列ごとの移動秒数差
+    // 敵の残存数が少なくなるほどスピードアップ
     private float MovingIntervalPerLine
     {
         get
@@ -53,7 +45,7 @@ public class EnemyCloud : MonoBehaviour
     {
         get
         {
-            Debug.Log("Cloud RightEnd::" + Mathf.Max(Lines.Select((l) => l.RightEnd).ToArray()).ToString());
+            //Debug.Log("Cloud RightEnd::" + Mathf.Max(Lines.Select((l) => l.RightEnd).ToArray()).ToString());
             return Mathf.Max(Lines.Select((l) => l.RightEnd).ToArray());
         }
     }
@@ -62,7 +54,7 @@ public class EnemyCloud : MonoBehaviour
     {
         get
         {
-            Debug.Log("Cloud LeftEnd::" + Mathf.Min(Lines.Select((e) => e.LeftEnd).ToArray()).ToString());
+            //Debug.Log("Cloud LeftEnd::" + Mathf.Min(Lines.Select((e) => e.LeftEnd).ToArray()).ToString());
             return Mathf.Min(Lines.Select((e) => e.LeftEnd).ToArray());
         }
     }
@@ -92,19 +84,19 @@ public class EnemyCloud : MonoBehaviour
             .ToArray();
     }
 
-    public IEnumerator MoveRight()
+    public IEnumerator MoveRight(float amount)
     {
-        return Move(new Vector3(MovingAmountX, 0f));
+        return Move(new Vector3(amount, 0f));
     }
 
-    public IEnumerator MoveLeft()
+    public IEnumerator MoveLeft(float amount)
     {
-        return Move(new Vector3(-MovingAmountX, 0f));
+        return Move(new Vector3(-amount, 0f));
     }
 
-    public IEnumerator MoveDown()
+    public IEnumerator MoveDown(float amount)
     {
-        return Move(Vector3.down);
+        return Move(new Vector3(0f, -amount));
     }
 
     public IEnumerator StartFiring()

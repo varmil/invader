@@ -34,8 +34,6 @@ public class GameProcessManager : MonoBehaviour
     {
         playerController.OnEnemyDefeated += (enemy) =>
         {
-            // 敵の残存数が少なくなるほど敵スピードアップ
-            //enemyController.SpeedUpIfNeeded();
         };
     }
 

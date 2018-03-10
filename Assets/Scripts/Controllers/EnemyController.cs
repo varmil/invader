@@ -11,13 +11,25 @@ public class EnemyController : MonoBehaviour
 {
     // 移動終了後から次の移動までの秒間隔の逆数
     // 敵の残存数が少なくなるほどスピードアップ
-    public float MovingInterval
+    private float MovingInterval
     {
         get
         {
             return .3f * ((enemyCloud.AliveEnemies.Count() - 1) / 55f);
         }
     }
+
+    // １回の移動でどの程度X軸方向に動くか
+    // 敵の残存数が少なくなるほどスピードアップ（逆数）
+    private float MovingAmountX
+    {
+        get
+        {
+            return .25f + (.5f * (1f / enemyCloud.AliveEnemies.Count()));
+        }
+    }
+
+    private static readonly float MovingAmountY = 1f;
 
     // Cloudの移動方向
     enum MoveDirection : byte
@@ -37,17 +49,17 @@ public class EnemyController : MonoBehaviour
 
     void Awake()
     {
-        this.enemyCloud = transform.Find("Lines").GetComponent<EnemyCloud>();
+        enemyCloud = transform.Find("Lines").GetComponent<EnemyCloud>();
     }
 
     public IEnumerable<IEnumerable<Enemy>> CreateEnemies()
     {
-        return this.enemyCloud.CreateEnemies();
+        return enemyCloud.CreateEnemies();
     }
 
     public IEnumerator StartFiring()
     {
-        return this.enemyCloud.StartFiring();
+        return enemyCloud.StartFiring();
     }
 
     public IEnumerator StartCloudMoving()
@@ -65,25 +77,25 @@ public class EnemyController : MonoBehaviour
             switch (nextDir)
             {
                 case MoveDirection.Right:
-                    yield return this.enemyCloud.MoveRight();
+                    yield return enemyCloud.MoveRight(MovingAmountX);
                     break;
                 case MoveDirection.Left:
-                    yield return this.enemyCloud.MoveLeft();
+                    yield return enemyCloud.MoveLeft(MovingAmountX);
                     break;
                 case MoveDirection.Down:
-                    yield return this.enemyCloud.MoveDown();
+                    yield return enemyCloud.MoveDown(MovingAmountY);
                     break;
             }
 
             // update state
-            this.previousMoveDirection = this.currentMoveDirection;
-            this.currentMoveDirection = nextDir;
+            previousMoveDirection = currentMoveDirection;
+            currentMoveDirection = nextDir;
         }
     }
 
     private MoveDirection CalcNextMoveDirection()
     {
-        switch (this.currentMoveDirection)
+        switch (currentMoveDirection)
         {
             // 右端にCloudが達していたらDownへ
             case MoveDirection.Right:
@@ -97,7 +109,7 @@ public class EnemyController : MonoBehaviour
                     : MoveDirection.Left;
             // 一つ前のMoveDirectionを参照して、それと逆方向へ
             case MoveDirection.Down:
-                return (this.previousMoveDirection == MoveDirection.Right)
+                return (previousMoveDirection == MoveDirection.Right)
                     ? MoveDirection.Left
                     : MoveDirection.Right;
             default:
@@ -107,11 +119,11 @@ public class EnemyController : MonoBehaviour
 
     private bool IsReachedRightEnd()
     {
-        return this.enemyCloud.RightEnd >= Constants.Stage.RightEnd;
+        return enemyCloud.RightEnd >= Constants.Stage.RightEnd;
     }
 
     private bool IsReachedLeftEnd()
     {
-        return this.enemyCloud.LeftEnd <= Constants.Stage.LeftEnd;
+        return enemyCloud.LeftEnd <= Constants.Stage.LeftEnd;
     }
 }
