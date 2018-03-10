@@ -1,15 +1,23 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /**
- * 敵が動きうるゾーン全体
+ * 敵全体の統制
  */
-public class EnemyZone : MonoBehaviour
+public class EnemyController : MonoBehaviour
 {
-    // 移動終了後から次の移動までの秒間隔
-    // TODO: speed up gradually
-    private static readonly float MovingInterval = .1f;
+    // 移動終了後から次の移動までの秒間隔の逆数
+    // 敵の残存数が少なくなるほどスピードアップ
+    public float MovingInterval
+    {
+        get
+        {
+            return .3f * ((enemyCloud.AliveEnemies.Count() - 1) / 55f);
+        }
+    }
 
     // Cloudの移動方向
     enum MoveDirection : byte
@@ -23,6 +31,7 @@ public class EnemyZone : MonoBehaviour
 
     // 初期は右方向
     private MoveDirection currentMoveDirection = MoveDirection.Right;
+
     // 下方向へ移動した後の移動方向を決定するのに使用する
     private MoveDirection previousMoveDirection;
 
@@ -31,16 +40,25 @@ public class EnemyZone : MonoBehaviour
         this.enemyCloud = transform.Find("Lines").GetComponent<EnemyCloud>();
     }
 
-    void Start()
+    public IEnumerable<IEnumerable<Enemy>> CreateEnemies()
     {
-        StartCoroutine(StartCloudMoving());
+        return this.enemyCloud.CreateEnemies();
     }
 
-    private IEnumerator StartCloudMoving()
+    public IEnumerator StartFiring()
+    {
+        return this.enemyCloud.StartFiring();
+    }
+
+    public IEnumerator StartCloudMoving()
     {
         while (true)
         {
+            //if (MovingInterval > 0)
+            //{
+            Debug.Log(MovingInterval);
             yield return new WaitForSeconds(MovingInterval);
+            //}
 
             // Look Line Position to judge move right or left or down
             var nextDir = CalcNextMoveDirection();

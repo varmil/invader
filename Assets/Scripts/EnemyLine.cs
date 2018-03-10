@@ -5,7 +5,7 @@ using UnityEngine;
 /**
  * EnemyCloud内に存在する敵の列（1列）
  */
-public class Line : MonoBehaviour
+public class EnemyLine : MonoBehaviour
 {
     // １列の敵の数
     private static readonly int EnemyAmountPerLine = 11;
@@ -24,7 +24,12 @@ public class Line : MonoBehaviour
         get { return Enemies.Where(e => e.Alive); }
     }
 
-    private List<Enemy> enemies = new List<Enemy>(11);
+    public bool IsAllDead
+    {
+        get { return AliveEnemies.Count() == 0; }
+    }
+
+    private List<Enemy> enemies = new List<Enemy>(EnemyAmountPerLine);
 
     private GameObject basicEnemyPrefab;
 
@@ -37,6 +42,9 @@ public class Line : MonoBehaviour
     {
         get
         {
+            // 全ての敵が消滅している場合は便宜的にゼロ
+            if (IsAllDead) return 0f;
+
             var myPos = this.transform.position.x;
             var offset = Mathf.Max(AliveEnemies.Select((e) => e.transform.localPosition.x).ToArray());
             return myPos + offset;
@@ -47,6 +55,9 @@ public class Line : MonoBehaviour
     {
         get
         {
+            // 全ての敵が消滅している場合は便宜的にゼロ
+            if (IsAllDead) return 0f;
+
             var myPos = this.transform.position.x;
             var offset = Mathf.Min(AliveEnemies.Select((e) => e.transform.localPosition.x).ToArray());
             return myPos + offset;

@@ -9,9 +9,9 @@ public class BeamManager
     // 1行に何体の敵がデフォルトで存在するか
     private static readonly int ColumnsNumber = 11;
 
-    private readonly List<Line> lines;
+    private readonly List<EnemyLine> lines;
 
-    public BeamManager(List<Line> lines)
+    public BeamManager(List<EnemyLine> lines)
     {
         this.lines = lines;
     }

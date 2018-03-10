@@ -41,28 +41,27 @@ public class Enemy : MonoBehaviour
     {
         var myPos = this.transform.position;
         var beamPos = myPos + (Vector3.down * Height * BeamOffsetYRate);
-        var obj = ObjectPool.Instance.Get(beamPrefab, beamPos, Quaternion.identity);
+        var beam = ObjectPool.Instance.Get(beamPrefab, beamPos, Quaternion.identity);
 
         // beam callback
-        obj.GetComponent<Beam>().OnCollided = (other) =>
+        beam.GetComponent<Beam>().OnCollided = (other) =>
         {
-            ObjectPool.Instance.Release(obj);
+            ObjectPool.Instance.Release(beam);
 
             // check other is Player or not
             var parent = other.transform.parent;
             if (parent != null)
             {
-                var component = parent.GetComponent<Player>();
-                Debug.Log(parent.gameObject.name);
-                if (component != null)
+                var player = parent.GetComponent<Player>();
+                if (player != null)
                 {
-                    component.Dead();
+                    player.Die();
                 }
             }
         };
     }
 
-    public void Dead()
+    public void Die()
     {
         this.Alive = false;
         this.StartCoroutine(StartDeadAnimation());

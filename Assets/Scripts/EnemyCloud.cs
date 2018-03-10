@@ -8,27 +8,52 @@ using UnityEngine;
  */
 public class EnemyCloud : MonoBehaviour
 {
-    // 列ごとの移動秒数差
-    private static readonly float MovingIntervalPerLine = 0.15f;
-    // １回の移動でどの程度X軸方向に動くか
-    private static readonly float MovingAmountX = 0.25f;
     // 最も高い位置の初期Y座標
     private static readonly float FirstLineYPos = 15f;
     // 敵のbeam発射間隔ベース値
     private static readonly float BaseFiringIntervalSec = 0.8f;
 
+    // １回の移動でどの程度X軸方向に動くか
+    private float MovingAmountX
+    {
+        get
+        {
+            return .25f + (.5f * (1f / AliveEnemies.Count()));
+        }
+    }
+
+    // 列ごとの移動秒数差
+    private float MovingIntervalPerLine
+    {
+        get
+        {
+            return .2f * ((AliveEnemies.Count() - 1) / 55f);
+        }
+    }
+
     // 横方向の行
-    public List<Line> Lines
+    public List<EnemyLine> Lines
     {
         get { return lines; }
     }
-    private List<Line> lines = new List<Line>(5);
+    private List<EnemyLine> lines = new List<EnemyLine>(5);
+
+    public IEnumerable<Enemy> AliveEnemies
+    {
+        get
+        {
+            return this.Lines.SelectMany(enemyLine =>
+            {
+                return enemyLine.AliveEnemies;
+            });
+        }
+    }
 
     public float RightEnd
     {
         get
         {
-            //			Debug.Log ("Cloud RightEnd::" + Mathf.Max (Lines.Select ((l) => l.RightEnd).ToArray()).ToString());
+            Debug.Log("Cloud RightEnd::" + Mathf.Max(Lines.Select((l) => l.RightEnd).ToArray()).ToString());
             return Mathf.Max(Lines.Select((l) => l.RightEnd).ToArray());
         }
     }
@@ -37,7 +62,7 @@ public class EnemyCloud : MonoBehaviour
     {
         get
         {
-            //			Debug.Log ("Cloud LeftEnd::" + Mathf.Min (Lines.Select ((e) => e.LeftEnd).ToArray()).ToString());
+            Debug.Log("Cloud LeftEnd::" + Mathf.Min(Lines.Select((e) => e.LeftEnd).ToArray()).ToString());
             return Mathf.Min(Lines.Select((e) => e.LeftEnd).ToArray());
         }
     }
@@ -46,11 +71,11 @@ public class EnemyCloud : MonoBehaviour
 
     void Awake()
     {
-        this.lines.Add(transform.Find("1st").GetComponent<Line>());
-        this.lines.Add(transform.Find("2nd").GetComponent<Line>());
-        this.lines.Add(transform.Find("3rd").GetComponent<Line>());
-        this.lines.Add(transform.Find("4th").GetComponent<Line>());
-        this.lines.Add(transform.Find("5th").GetComponent<Line>());
+        this.lines.Add(transform.Find("1st").GetComponent<EnemyLine>());
+        this.lines.Add(transform.Find("2nd").GetComponent<EnemyLine>());
+        this.lines.Add(transform.Find("3rd").GetComponent<EnemyLine>());
+        this.lines.Add(transform.Find("4th").GetComponent<EnemyLine>());
+        this.lines.Add(transform.Find("5th").GetComponent<EnemyLine>());
 
         SetLinesInitialPosition();
 
@@ -59,41 +84,50 @@ public class EnemyCloud : MonoBehaviour
 
     }
 
-    void Start()
+    public IEnumerable<Enemy>[] CreateEnemies()
     {
-        // create enemies
-        Enumerable
+        return Enumerable
             .Range(0, this.Lines.Count)
             .Select((i) => this.lines[i].CreateEnemies())
             .ToArray();
-
-        // go coroutine
-        StartCoroutine(StartFiring());
     }
 
     public IEnumerator MoveRight()
     {
-        for (int i = this.Lines.Count - 1; i >= 0; i--)
-        {
-            this.lines[i].transform.position += new Vector3(MovingAmountX, 0);
-            yield return new WaitForSeconds(MovingIntervalPerLine);
-        }
+        return Move(new Vector3(MovingAmountX, 0f));
     }
 
     public IEnumerator MoveLeft()
     {
-        for (int i = this.Lines.Count - 1; i >= 0; i--)
-        {
-            this.lines[i].transform.position += new Vector3(-MovingAmountX, 0f);
-            yield return new WaitForSeconds(MovingIntervalPerLine);
-        }
+        return Move(new Vector3(-MovingAmountX, 0f));
     }
 
     public IEnumerator MoveDown()
     {
+        return Move(Vector3.down);
+    }
+
+    public IEnumerator StartFiring()
+    {
+        while (true)
+        {
+            // TODO: randomize
+            yield return new WaitForSeconds(BaseFiringIntervalSec);
+            var enemy = this.beamManager.GetRandomFireableEnemy();
+            enemy.Fire();
+            //Debug.Log(string.Join(", ", beamManager.GetFireableEnemies().Select(e => e.Id).ToArray()));
+        }
+    }
+
+    private IEnumerator Move(Vector3 delta)
+    {
         for (int i = this.Lines.Count - 1; i >= 0; i--)
         {
-            this.lines[i].transform.position += new Vector3(0f, -1f);
+            // ラインが消滅している場合は待たない
+            if (this.lines[i].IsAllDead)
+                continue;
+
+            this.lines[i].transform.position += delta;
             yield return new WaitForSeconds(MovingIntervalPerLine);
         }
     }
@@ -103,18 +137,6 @@ public class EnemyCloud : MonoBehaviour
         for (int i = 0; i < this.lines.Count; i++)
         {
             this.lines[i].transform.position = new Vector3(0f, FirstLineYPos - (i * 1.5f), 0f);
-        }
-    }
-
-    private IEnumerator StartFiring()
-    {
-        while (true)
-        {
-            // TODO: randomize
-            yield return new WaitForSeconds(BaseFiringIntervalSec);
-            var enemy = this.beamManager.GetRandomFireableEnemy();
-            enemy.Fire();
-            //			Debug.Log (string.Join(", ", beamManager.GetFireableEnemies ().Select(e => e.Id).ToArray()));
         }
     }
 }

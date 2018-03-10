@@ -1,12 +1,17 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
     // 移動速度
-    private static readonly float Speed = 0.2F;
+    public static readonly float Speed = 0.2F;
     // Fire時、自分のどの程度上にBeamを出現させるか
     private static readonly float BeamOffsetYRate = 0.1f;
+
+    // （デバッグ用）
+    public bool Invincible;
+    public bool RapidFire;
 
     // 生存しているか
     public bool Alive
@@ -19,6 +24,9 @@ public class Player : MonoBehaviour
     {
         get { return transform.localScale.y; }
     }
+
+    // 敵を倒したときのcallback
+    public Action<Enemy> OnEnemyDefeated { get; set; }
 
     private GameObject beamPrefab;
     private GameObject deadEffect;
@@ -37,60 +45,48 @@ public class Player : MonoBehaviour
         this.Alive = true;
     }
 
-    void Update()
+    public void MoveRight()
     {
-        if (!this.Alive) return;
+        transform.position += Vector3.right * Speed;
+    }
 
-        if (Input.GetKey(KeyCode.A))
-        {
-            if (transform.position.x > Constants.Stage.LeftEnd)
-            {
-                transform.position += Vector3.left * Speed;
-            }
-        }
-
-        if (Input.GetKey(KeyCode.D))
-        {
-            if (transform.position.x < Constants.Stage.RightEnd)
-            {
-                transform.position += Vector3.right * Speed;
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            this.Fire();
-        }
+    public void MoveLeft()
+    {
+        transform.position += Vector3.left * Speed;
     }
 
     public void Fire()
     {
         // the beam instance can only exist one at the same time
-        if (ObjectPool.Instance.CountActive(beamPrefab) != 0)
+        if (!RapidFire && ObjectPool.Instance.CountActive(beamPrefab) != 0)
         {
             return;
         }
 
         var myPos = this.transform.position;
         var beamPos = myPos + (Vector3.up * Height * BeamOffsetYRate);
-        var obj = ObjectPool.Instance.Get(beamPrefab, beamPos, Quaternion.identity);
+        var beam = ObjectPool.Instance.Get(beamPrefab, beamPos, Quaternion.identity);
 
         // beam callback
-        obj.GetComponent<Beam>().OnCollided = (other) =>
+        beam.GetComponent<Beam>().OnCollided = (other) =>
         {
-            ObjectPool.Instance.Release(obj);
+            ObjectPool.Instance.Release(beam);
 
             // check other is Enemy or not
-            var component = other.gameObject.GetComponent<Enemy>();
-            if (component != null)
+            var enemy = other.gameObject.GetComponent<Enemy>();
+            if (enemy != null)
             {
-                component.Dead();
+                OnEnemyDefeated(enemy);
+                enemy.Die();
             }
         };
     }
 
-    public void Dead()
+    public void Die()
     {
+        // 無敵なら死なない
+        if (Invincible) return;
+
         this.Alive = false;
         this.StartCoroutine(StartDeadAnimation());
     }
