@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
@@ -7,7 +8,10 @@ public class Enemy : MonoBehaviour
     private static readonly float BeamOffsetYRate = 2.5f;
 
     // デバッグ用
-    public string Id { get; set; }
+    public string Id { get; private set; }
+
+    // 倒されたときにプレイヤーが得るスコア
+    public int Score { get; private set; }
 
     // 生存しているか
     public bool Alive
@@ -21,20 +25,34 @@ public class Enemy : MonoBehaviour
         get { return transform.localScale.y; }
     }
 
+    // 移動時に動的にメッシュ差し替えを行う
+    [SerializeField]
+    private List<Mesh> meshes;
+
+    // prefabs
     private GameObject beamPrefab;
-    private GameObject deadEffect;
-    private ParticleSystem deadEffectParticle;
+
+    // components
+    private MeshFilter meshFilter;
+
+    // states
+    private IEnumerator<Mesh> meshesRingBuffer;
 
     void Awake()
     {
         beamPrefab = (GameObject)Resources.Load("Prefabs/EnemyBeam");
-        var deadEffectPrefab = (GameObject)Resources.Load("Prefabs/Particles/EnemyDead");
 
-        // warm up particle, TODO: Use Particle Pooling
-        deadEffect = (GameObject)Instantiate(deadEffectPrefab, transform.position, Quaternion.identity);
-        deadEffectParticle = deadEffect.GetComponent<ParticleSystem>();
+        // （メッシュ）移動時に差し替える。
+        meshFilter = transform.Find("Model").GetComponent<MeshFilter>();
+        meshesRingBuffer = meshes.Repeat().GetEnumerator();
+        meshesRingBuffer.MoveNext();
+    }
 
+    public void Initialize(string id, int score)
+    {
         this.Alive = true;
+        this.Id = id;
+        this.Score = score;
     }
 
     public void Fire()
@@ -61,6 +79,18 @@ public class Enemy : MonoBehaviour
         };
     }
 
+    public void OnMoved()
+    {
+        // メッシュ差し替えでアニメーションさせる
+        {
+            // 循環バッファなので必ず取得できる想定
+            if (!meshesRingBuffer.MoveNext())
+                throw new MissingReferenceException("meshesRingBuffer.MoveNext() is FALSE");
+
+            meshFilter.mesh = meshesRingBuffer.Current;
+        }
+    }
+
     public void Die()
     {
         this.Alive = false;
@@ -72,8 +102,9 @@ public class Enemy : MonoBehaviour
         // ための一瞬
         yield return new WaitForSeconds(0.05f);
 
-        deadEffect.transform.localPosition = transform.position;
-        deadEffectParticle.Play();
+        ParticleManager.Instance.Play("Prefabs/Particles/EnemyDead",
+            transform.position + (Vector3.up * 0.1f),
+            meshFilter.GetComponent<Renderer>().material);
 
         yield return new WaitForSeconds(0.06f);
 

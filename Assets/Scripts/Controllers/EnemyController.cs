@@ -9,6 +9,11 @@ using UnityEngine;
  */
 public class EnemyController : MonoBehaviour
 {
+    // 敵撃破時にこの秒数だけ全体が止まる
+    private static readonly float PausingSec = 0.3f;
+
+    private static readonly float MovingAmountY = 1f;
+
     // 移動終了後から次の移動までの秒間隔の逆数
     // 敵の残存数が少なくなるほどスピードアップ
     private float MovingInterval
@@ -28,8 +33,6 @@ public class EnemyController : MonoBehaviour
             return .25f + (.5f * (1f / enemyCloud.AliveEnemies.Count()));
         }
     }
-
-    private static readonly float MovingAmountY = 1f;
 
     // Cloudの移動方向
     enum MoveDirection : byte
@@ -66,11 +69,7 @@ public class EnemyController : MonoBehaviour
     {
         while (true)
         {
-            //if (MovingInterval > 0)
-            //{
-            Debug.Log(MovingInterval);
             yield return new WaitForSeconds(MovingInterval);
-            //}
 
             // Look Line Position to judge move right or left or down
             var nextDir = CalcNextMoveDirection();
@@ -91,6 +90,13 @@ public class EnemyController : MonoBehaviour
             previousMoveDirection = currentMoveDirection;
             currentMoveDirection = nextDir;
         }
+    }
+
+    public IEnumerator Pause()
+    {
+        enemyCloud.IsPausing = true;
+        yield return new WaitForSeconds(PausingSec);
+        enemyCloud.IsPausing = false;
     }
 
     private MoveDirection CalcNextMoveDirection()

@@ -29,13 +29,18 @@ public class EnemyLine : MonoBehaviour
         get { return AliveEnemies.Count() == 0; }
     }
 
+    public int ScorePerEnemy
+    {
+        get;
+        private set;
+    }
+
     private List<Enemy> enemies = new List<Enemy>(EnemyAmountPerLine);
 
-    private GameObject basicEnemyPrefab;
+    private GameObject enemyPrefab;
 
     void Awake()
     {
-        basicEnemyPrefab = (GameObject)Resources.Load("Prefabs/Enemy");
     }
 
     public float RightEnd
@@ -64,18 +69,31 @@ public class EnemyLine : MonoBehaviour
         }
     }
 
+    public void Initialize(int scorePerEnemy, GameObject enemyPrefab)
+    {
+        ScorePerEnemy = scorePerEnemy;
+        this.enemyPrefab = enemyPrefab;
+    }
+
     public IEnumerable<Enemy> CreateEnemies()
     {
         for (int i = 0; i < EnemyAmountPerLine; i++)
         {
             var position = new Vector3((float)(i * EnemyXSpace - OffsetX), 0f, 0f);
-            var obj = (GameObject)Instantiate(basicEnemyPrefab, position, Quaternion.identity);
+            var obj = Instantiate(this.enemyPrefab, position, Quaternion.identity);
             obj.transform.SetParent(this.transform, false);
 
             var enemy = obj.GetComponent<Enemy>();
-            enemy.Id = this.name + "-enemy::" + i;
+            enemy.Initialize(this.name + "-enemy::" + i, ScorePerEnemy);
             enemies.Add(enemy);
         }
         return enemies;
+    }
+
+    // 移動はLineごと行い、個々のEnemyへはイベント通知のみ
+    public void Move(Vector3 delta)
+    {
+        this.transform.position += delta;
+        this.Enemies.ForEach(e => e.OnMoved());
     }
 }

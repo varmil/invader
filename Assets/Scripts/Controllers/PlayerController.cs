@@ -1,6 +1,9 @@
 ﻿using System;
 using UnityEngine;
 
+/**
+ * 自機の統制
+ */
 public class PlayerController : MonoBehaviour
 {
     // falseならPlayer操作無効

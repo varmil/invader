@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    // （デバッグ用）
+    public bool Invincible;
+    public bool RapidFire;
+
     // 移動速度
     public static readonly float Speed = 0.2F;
     // Fire時、自分のどの程度上にBeamを出現させるか
     private static readonly float BeamOffsetYRate = 0.1f;
-
-    // （デバッグ用）
-    public bool Invincible;
-    public bool RapidFire;
 
     // 生存しているか
     public bool Alive
@@ -29,17 +29,10 @@ public class Player : MonoBehaviour
     public Action<Enemy> OnEnemyDefeated { get; set; }
 
     private GameObject beamPrefab;
-    private GameObject deadEffect;
-    private ParticleSystem deadEffectParticle;
 
     void Awake()
     {
         beamPrefab = (GameObject)Resources.Load("Prefabs/PlayerBeam");
-        var deadEffectPrefab = (GameObject)Resources.Load("Prefabs/Particles/PlayerDead");
-
-        // warm up particle
-        deadEffect = (GameObject)Instantiate(deadEffectPrefab, transform.position, Quaternion.identity);
-        deadEffectParticle = deadEffect.GetComponent<ParticleSystem>();
 
         // initialize
         this.Alive = true;
@@ -72,12 +65,16 @@ public class Player : MonoBehaviour
         {
             ObjectPool.Instance.Release(beam);
 
-            // check other is Enemy or not
-            var enemy = other.gameObject.GetComponent<Enemy>();
-            if (enemy != null)
+            // check other is Player or not
+            var parent = other.transform.parent;
+            if (parent != null)
             {
-                OnEnemyDefeated(enemy);
-                enemy.Die();
+                var enemy = parent.GetComponent<Enemy>();
+                if (enemy != null && enemy.Alive)
+                {
+                    OnEnemyDefeated(enemy);
+                    enemy.Die();
+                }
             }
         };
     }
@@ -96,8 +93,7 @@ public class Player : MonoBehaviour
         // ための一瞬
         yield return new WaitForSeconds(0.1f);
 
-        deadEffect.transform.localPosition = transform.localPosition;
-        deadEffectParticle.Play();
+        ParticleManager.Instance.Play("Prefabs/Particles/PlayerDead", transform.localPosition);
 
         yield return new WaitForSeconds(0.06f);
 

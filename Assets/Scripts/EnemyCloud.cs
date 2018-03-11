@@ -12,6 +12,10 @@ public class EnemyCloud : MonoBehaviour
     private static readonly float FirstLineYPos = 15f;
     // 敵のbeam発射間隔ベース値
     private static readonly float BaseFiringIntervalSec = 0.8f;
+    // 敵のスコア
+    private static readonly int ScoreOfUpper = 30;
+    private static readonly int ScoreOfMiddle = 20;
+    private static readonly int ScoreOfLower = 10;
 
     // 列ごとの移動秒数差
     // 敵の残存数が少なくなるほどスピードアップ
@@ -59,21 +63,54 @@ public class EnemyCloud : MonoBehaviour
         }
     }
 
+    // 外からsetする。trueなら敵は動かない
+    public bool IsPausing
+    {
+        get;
+        set;
+    }
+
     private BeamManager beamManager;
+    private GameObject squidPrefab;
+    private GameObject crabPrefab;
+    private GameObject octopusPrefab;
+    private GameObject ufoPrefab;
 
     void Awake()
     {
-        this.lines.Add(transform.Find("1st").GetComponent<EnemyLine>());
-        this.lines.Add(transform.Find("2nd").GetComponent<EnemyLine>());
-        this.lines.Add(transform.Find("3rd").GetComponent<EnemyLine>());
-        this.lines.Add(transform.Find("4th").GetComponent<EnemyLine>());
-        this.lines.Add(transform.Find("5th").GetComponent<EnemyLine>());
+        squidPrefab = (GameObject)Resources.Load("Prefabs/Enemies/Squid");
+        crabPrefab = (GameObject)Resources.Load("Prefabs/Enemies/Crab");
+        octopusPrefab = (GameObject)Resources.Load("Prefabs/Enemies/Octopus");
+        ufoPrefab = (GameObject)Resources.Load("Prefabs/Enemies/UFO");
 
-        SetLinesInitialPosition();
+        InitializeLines();
 
         // instantiate POCO
         this.beamManager = new BeamManager(this.Lines);
 
+    }
+
+    private void InitializeLines()
+    {
+        var first = transform.Find("1st").GetComponent<EnemyLine>();
+        var second = transform.Find("2nd").GetComponent<EnemyLine>();
+        var third = transform.Find("3rd").GetComponent<EnemyLine>();
+        var fourth = transform.Find("4th").GetComponent<EnemyLine>();
+        var fifth = transform.Find("5th").GetComponent<EnemyLine>();
+
+        first.Initialize(ScoreOfUpper, squidPrefab);
+        second.Initialize(ScoreOfMiddle, crabPrefab);
+        third.Initialize(ScoreOfMiddle, crabPrefab);
+        fourth.Initialize(ScoreOfLower, octopusPrefab);
+        fifth.Initialize(ScoreOfLower, octopusPrefab);
+
+        this.lines.Add(first);
+        this.lines.Add(second);
+        this.lines.Add(third);
+        this.lines.Add(fourth);
+        this.lines.Add(fifth);
+
+        SetLinesInitialPosition();
     }
 
     public IEnumerable<Enemy>[] CreateEnemies()
@@ -106,20 +143,38 @@ public class EnemyCloud : MonoBehaviour
             // TODO: randomize
             yield return new WaitForSeconds(BaseFiringIntervalSec);
             var enemy = this.beamManager.GetRandomFireableEnemy();
-            enemy.Fire();
             //Debug.Log(string.Join(", ", beamManager.GetFireableEnemies().Select(e => e.Id).ToArray()));
+
+            if (enemy != null)
+            {
+                enemy.Fire();
+            }
         }
+    }
+
+    public void Pause()
+    {
+        this.Lines.ForEach(line =>
+        {
+            line.enabled = false;
+        });
     }
 
     private IEnumerator Move(Vector3 delta)
     {
         for (int i = this.Lines.Count - 1; i >= 0; i--)
         {
+            while (IsPausing)
+            {
+                Debug.Log("pausing");
+                yield return null;
+            }
+
             // ラインが消滅している場合は待たない
             if (this.lines[i].IsAllDead)
                 continue;
 
-            this.lines[i].transform.position += delta;
+            this.lines[i].Move(delta);
             yield return new WaitForSeconds(MovingIntervalPerLine);
         }
     }

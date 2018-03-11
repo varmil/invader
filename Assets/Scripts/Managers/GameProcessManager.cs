@@ -3,27 +3,8 @@
 /**
  * ゲームの進行管理
  */
-public class GameProcessManager : MonoBehaviour
+public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
 {
-    private static GameProcessManager _instance;
-
-    public static GameProcessManager Instance
-    {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = FindObjectOfType<GameProcessManager>();
-
-                if (_instance == null)
-                {
-                    _instance = new GameObject("Managers/GameProcessManager").AddComponent<GameProcessManager>();
-                }
-            }
-            return _instance;
-        }
-    }
-
     [SerializeField]
     private EnemyController enemyController;
 
@@ -34,22 +15,23 @@ public class GameProcessManager : MonoBehaviour
     {
         playerController.OnEnemyDefeated += (enemy) =>
         {
+            // スコア加算
+            ScoreStore.Instance.AddScore(enemy.Score);
+
+            // 敵を一時停止（念の為止めてから）
+            StopCoroutine(enemyController.Pause());
+            StartCoroutine(enemyController.Pause());
         };
     }
 
     void Start()
     {
         // enemy process
-        var enemies = enemyController.CreateEnemies();
+        enemyController.CreateEnemies();
         StartCoroutine(enemyController.StartCloudMoving());
         StartCoroutine(enemyController.StartFiring());
 
         // player process
         playerController.CanMove = true;
-    }
-
-    void Update()
-    {
-
     }
 }
