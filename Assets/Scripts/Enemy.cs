@@ -5,7 +5,7 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     // Fire時、自分のどの程度下にBeamを出現させるか
-    private static readonly float BeamOffsetYRate = 2.5f;
+    private static readonly float BeamOffsetYRate = 1.5f;
 
     // デバッグ用
     public string Id { get; private set; }
@@ -66,7 +66,7 @@ public class Enemy : MonoBehaviour
         {
             ObjectPool.Instance.Release(beam);
 
-            // check other is Player or not
+            // check other is Player or Tochka or not
             var parent = other.transform.parent;
             if (parent != null)
             {
@@ -74,6 +74,12 @@ public class Enemy : MonoBehaviour
                 if (player != null)
                 {
                     player.Die();
+                }
+
+                var tochka = parent.GetComponent<Tochka>();
+                if (tochka != null)
+                {
+                    tochka.TakeDamage(other);
                 }
             }
         };

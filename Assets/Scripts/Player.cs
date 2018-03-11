@@ -65,15 +65,23 @@ public class Player : MonoBehaviour
         {
             ObjectPool.Instance.Release(beam);
 
-            // check other is Player or not
+            // check other is Enemy or Tochka or not
             var parent = other.transform.parent;
             if (parent != null)
             {
+                Debug.Log(parent.name);
+
                 var enemy = parent.GetComponent<Enemy>();
                 if (enemy != null && enemy.Alive)
                 {
                     OnEnemyDefeated(enemy);
                     enemy.Die();
+                }
+
+                var tochka = parent.GetComponent<Tochka>();
+                if (tochka != null)
+                {
+                    tochka.TakeDamage(other);
                 }
             }
         };
@@ -93,7 +101,8 @@ public class Player : MonoBehaviour
         // ための一瞬
         yield return new WaitForSeconds(0.1f);
 
-        ParticleManager.Instance.Play("Prefabs/Particles/PlayerDead", transform.localPosition);
+        ParticleManager.Instance.Play("Prefabs/Particles/PlayerDead",
+            transform.position + (Vector3.down * 1f));
 
         yield return new WaitForSeconds(0.06f);
 
