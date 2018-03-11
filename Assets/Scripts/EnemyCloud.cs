@@ -166,7 +166,6 @@ public class EnemyCloud : MonoBehaviour
         {
             while (IsPausing)
             {
-                Debug.Log("pausing");
                 yield return null;
             }
 

@@ -14,6 +14,12 @@ public class EnemyController : MonoBehaviour
 
     private static readonly float MovingAmountY = 1f;
 
+    // trueなら敵は動かない
+    public bool IsPausing
+    {
+        get { return enemyCloud.IsPausing; }
+    }
+
     // 移動終了後から次の移動までの秒間隔の逆数
     // 敵の残存数が少なくなるほどスピードアップ
     private float MovingInterval
