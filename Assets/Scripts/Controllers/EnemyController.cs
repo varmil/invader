@@ -9,9 +9,6 @@ using UnityEngine;
  */
 public class EnemyController : MonoBehaviour
 {
-    // 敵撃破時にこの秒数だけ全体が止まる
-    private static readonly float PausingSec = 0.3f;
-
     private static readonly float MovingAmountY = 1f;
 
     // trueなら敵は動かない
@@ -98,10 +95,13 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    public IEnumerator Pause()
+    public void Pause()
     {
         enemyCloud.IsPausing = true;
-        yield return new WaitForSeconds(PausingSec);
+    }
+
+    public void Resume()
+    {
         enemyCloud.IsPausing = false;
     }
 

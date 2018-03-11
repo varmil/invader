@@ -28,14 +28,27 @@ public class Player : MonoBehaviour
     // 敵を倒したときのcallback
     public Action<Enemy> OnEnemyDefeated { get; set; }
 
+    // 自機の死亡処理が始まった際のcallback
+    public Action OnDeadAnimationStart { get; set; }
+
+    // 自機の死亡処理が終わった後のcallback
+    public Action OnDeadAnimationEnd { get; set; }
+
     private GameObject beamPrefab;
 
     void Awake()
     {
         beamPrefab = (GameObject)Resources.Load("Prefabs/PlayerBeam");
 
-        // initialize
+        Initialize();
+    }
+
+    public void Initialize()
+    {
         this.Alive = true;
+
+        ToggleRenderer(true);
+        ToggleCollider(true);
     }
 
     public void MoveRight()
@@ -69,8 +82,6 @@ public class Player : MonoBehaviour
             var parent = other.transform.parent;
             if (parent != null)
             {
-                Debug.Log(parent.name);
-
                 var enemy = parent.GetComponent<Enemy>();
                 if (enemy != null && enemy.Alive)
                 {
@@ -87,13 +98,16 @@ public class Player : MonoBehaviour
         };
     }
 
-    public void Die()
+    public IEnumerator Die()
     {
         // 無敵なら死なない
-        if (Invincible) return;
+        if (Invincible) yield break;
 
         this.Alive = false;
-        this.StartCoroutine(StartDeadAnimation());
+
+        OnDeadAnimationStart();
+        yield return StartCoroutine(StartDeadAnimation());
+        OnDeadAnimationEnd();
     }
 
     private IEnumerator StartDeadAnimation()
@@ -106,6 +120,29 @@ public class Player : MonoBehaviour
 
         yield return new WaitForSeconds(0.06f);
 
-        this.gameObject.SetActive(false);
+        // SetActive = false にするとコルーチンも消滅するので切り替えでしのぐ
+        ToggleRenderer(false);
+        ToggleCollider(false);
+
+        // アニメーション終了まで適当に待つ
+        yield return new WaitForSeconds(1f);
+    }
+
+    private void ToggleRenderer(bool enable)
+    {
+        var renderers = GetComponentsInChildren<MeshRenderer>();
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            renderers[i].enabled = enable;
+        }
+    }
+
+    private void ToggleCollider(bool enable)
+    {
+        var colliders = GetComponentsInChildren<BoxCollider>();
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = enable;
+        }
     }
 }

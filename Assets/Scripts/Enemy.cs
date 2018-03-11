@@ -53,6 +53,9 @@ public class Enemy : MonoBehaviour
         this.Alive = true;
         this.Id = id;
         this.Score = score;
+
+        ToggleRenderer(true);
+        ToggleCollider(true);
     }
 
     public void Fire()
@@ -73,7 +76,7 @@ public class Enemy : MonoBehaviour
                 var player = parent.GetComponent<Player>();
                 if (player != null)
                 {
-                    player.Die();
+                    StartCoroutine(player.Die());
                 }
 
                 var tochka = parent.GetComponent<Tochka>();
@@ -114,6 +117,25 @@ public class Enemy : MonoBehaviour
 
         yield return new WaitForSeconds(0.06f);
 
-        this.gameObject.SetActive(false);
+        ToggleRenderer(false);
+        ToggleCollider(false);
+    }
+
+    private void ToggleRenderer(bool enable)
+    {
+        var renderers = GetComponentsInChildren<MeshRenderer>();
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            renderers[i].enabled = enable;
+        }
+    }
+
+    private void ToggleCollider(bool enable)
+    {
+        var colliders = GetComponentsInChildren<BoxCollider>();
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            colliders[i].enabled = enable;
+        }
     }
 }

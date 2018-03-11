@@ -140,6 +140,11 @@ public class EnemyCloud : MonoBehaviour
     {
         while (true)
         {
+            while (IsPausing)
+            {
+                yield return null;
+            }
+
             // TODO: randomize
             yield return new WaitForSeconds(BaseFiringIntervalSec);
             var enemy = this.beamManager.GetRandomFireableEnemy();
