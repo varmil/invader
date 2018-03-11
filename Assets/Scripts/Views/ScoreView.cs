@@ -23,6 +23,11 @@ public class ScoreView : MonoBehaviour, IObserver
         label = GetComponent<Text>();
     }
 
+    void Start()
+    {
+        label.text = DataSource.CurrentScore.ToString().PadLeft(PaddingWidth, '0');
+    }
+
     void IObserver.Update()
     {
         label.text = DataSource.CurrentScore.ToString().PadLeft(PaddingWidth, '0');

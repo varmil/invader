@@ -41,6 +41,7 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
             if (PausingEnemyCoroutine != null)
             {
                 StopCoroutine(PausingEnemyCoroutine);
+                PausingEnemyCoroutine = null;
             }
             playerController.Pause();
             enemyController.Pause();
@@ -54,18 +55,36 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
                 PlayerStore.Instance.Life--;
                 StartCoroutine(RebornGame());
             }
+            else
+            {
+                // TODO: game over
+            }
         };
     }
 
     void Start()
     {
         // enemy process
-        enemyController.CreateEnemies();
-        StartCoroutine(enemyController.StartCloudMoving());
-        StartCoroutine(enemyController.StartFiring());
+        StartCoroutine(InitializeEnemies());
 
         // player process
         playerController.Initialize();
+    }
+
+    /// <summary>
+    /// 時間制御したいのでコルーチン
+    /// </summary>
+    private IEnumerator InitializeEnemies()
+    {
+        enemyController.CreateEnemies();
+
+        yield return new WaitForSeconds(0.3f);
+
+        StartCoroutine(enemyController.StartCloudMoving());
+
+        yield return new WaitForSeconds(0.3f);
+
+        StartCoroutine(enemyController.StartFiring());
     }
 
     /// <summary>

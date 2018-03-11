@@ -17,8 +17,10 @@ public class PlayerLifeView : MonoBehaviour, IObserver
         }
     }
 
-    void Awake()
+    void Start()
     {
+        // 初期値設定
+        label.text = DataSource.Life.ToString();
     }
 
     void IObserver.Update()

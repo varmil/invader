@@ -145,8 +145,6 @@ public class EnemyCloud : MonoBehaviour
                 yield return null;
             }
 
-            // TODO: randomize
-            yield return new WaitForSeconds(BaseFiringIntervalSec);
             var enemy = this.beamManager.GetRandomFireableEnemy();
             //Debug.Log(string.Join(", ", beamManager.GetFireableEnemies().Select(e => e.Id).ToArray()));
 
@@ -154,15 +152,10 @@ public class EnemyCloud : MonoBehaviour
             {
                 enemy.Fire();
             }
-        }
-    }
 
-    public void Pause()
-    {
-        this.Lines.ForEach(line =>
-        {
-            line.enabled = false;
-        });
+            // TODO: randomize
+            yield return new WaitForSeconds(BaseFiringIntervalSec);
+        }
     }
 
     private IEnumerator Move(Vector3 delta)
