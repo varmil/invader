@@ -26,7 +26,7 @@ public class Player : MonoBehaviour, IDamageable
     }
 
     // 敵を倒したときのcallback
-    public Action<Enemy> OnEnemyDefeated { get; set; }
+    public Action<IEnemy> OnEnemyDefeated { get; set; }
 
     // 自機の死亡処理が始まった際のcallback
     public Action OnDeadAnimationStart { get; set; }
@@ -47,8 +47,8 @@ public class Player : MonoBehaviour, IDamageable
     {
         this.Alive = true;
 
-        ToggleRenderer(true);
-        ToggleCollider(true);
+        gameObject.ToggleMeshRenderer(true);
+        gameObject.ToggleBoxCollider(true);
     }
 
     public void MoveRight()
@@ -82,19 +82,25 @@ public class Player : MonoBehaviour, IDamageable
             var parent = other.transform.parent;
             if (parent != null)
             {
-				var damageable = parent.GetComponent<IDamageable>();
-				if (damageable != null)
-				{
-					damageable.TakeDamage(gameObject, other);
-				}
+                var damageable = parent.GetComponent<IDamageable>();
+                if (damageable != null)
+                {
+                    damageable.TakeDamage(gameObject, other);
+                }
+
+                var enemy = parent.GetComponent<IEnemy>();
+                if (enemy != null)
+                {
+                    OnEnemyDefeated(enemy);
+                }
             }
         };
     }
 
-	public void TakeDamage(GameObject attacker, Collider collided)
-	{
-		StartCoroutine (Die ());
-	}
+    public void TakeDamage(GameObject attacker, Collider collided)
+    {
+        StartCoroutine(Die());
+    }
 
     private IEnumerator Die()
     {
@@ -119,28 +125,10 @@ public class Player : MonoBehaviour, IDamageable
         yield return new WaitForSeconds(0.06f);
 
         // SetActive = false にするとコルーチンも消滅するので切り替えでしのぐ
-        ToggleRenderer(false);
-        ToggleCollider(false);
+        gameObject.ToggleMeshRenderer(false);
+        gameObject.ToggleBoxCollider(false);
 
         // アニメーション終了まで適当に待つ
         yield return new WaitForSeconds(1f);
-    }
-
-    private void ToggleRenderer(bool enable)
-    {
-        var renderers = GetComponentsInChildren<MeshRenderer>();
-        for (int i = 0; i < renderers.Length; i++)
-        {
-            renderers[i].enabled = enable;
-        }
-    }
-
-    private void ToggleCollider(bool enable)
-    {
-        var colliders = GetComponentsInChildren<BoxCollider>();
-        for (int i = 0; i < colliders.Length; i++)
-        {
-            colliders[i].enabled = enable;
-        }
     }
 }

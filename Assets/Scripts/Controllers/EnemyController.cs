@@ -17,6 +17,11 @@ public class EnemyController : MonoBehaviour
         get { return enemyCloud.IsPausing; }
     }
 
+    public IEnumerable<Enemy> AliveEnemies
+    {
+        get { return enemyCloud.AliveEnemies; }
+    }
+
     // 移動終了後から次の移動までの秒間隔の逆数
     // 敵の残存数が少なくなるほどスピードアップ
     private float MovingInterval
@@ -45,6 +50,14 @@ public class EnemyController : MonoBehaviour
         Down
     }
 
+    // UFOの移動方向
+    enum UFOMoveDirection : byte
+    {
+        Right,
+        Left,
+    }
+
+    private GameObject ufoPrefab;
     private EnemyCloud enemyCloud;
 
     // 初期は右方向
@@ -55,6 +68,7 @@ public class EnemyController : MonoBehaviour
 
     void Awake()
     {
+        ufoPrefab = (GameObject)Resources.Load("Prefabs/Enemies/UFO");
         enemyCloud = transform.Find("Lines").GetComponent<EnemyCloud>();
     }
 
@@ -93,6 +107,27 @@ public class EnemyController : MonoBehaviour
             previousMoveDirection = currentMoveDirection;
             currentMoveDirection = nextDir;
         }
+    }
+
+    public void MakeUFOAppear()
+    {
+        var direction = (UFOMoveDirection)UnityEngine.Random.Range(0, 2);
+        var pos = (direction == UFOMoveDirection.Right)
+            ? new Vector3(Constants.Stage.UFOLeftEnd, Constants.Stage.UFOYPos)
+            : new Vector3(Constants.Stage.UFORightEnd, Constants.Stage.UFOYPos);
+
+        var ufo = ObjectPool.Instance.Get(ufoPrefab, pos, Quaternion.identity);
+        var component = ufo.GetComponent<UFO>();
+
+        // init
+        var movingVector = (direction == UFOMoveDirection.Right) ? Vector3.right : Vector3.left;
+        component.Initialize(movingVector);
+
+        // set callback handler
+        component.OnGone = () => ObjectPool.Instance.Release(ufo);
+        component.OnDead = () => ObjectPool.Instance.Release(ufo);
+
+        component.StartMoving();
     }
 
     public void Pause()

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemy : MonoBehaviour, IDamageable
+public class Enemy : MonoBehaviour, IDamageable, IEnemy
 {
     // Fire時、自分のどの程度下にBeamを出現させるか
     private static readonly float BeamOffsetYRate = 1.5f;
@@ -54,8 +54,8 @@ public class Enemy : MonoBehaviour, IDamageable
         this.Id = id;
         this.Score = score;
 
-        ToggleRenderer(true);
-        ToggleCollider(true);
+        gameObject.ToggleMeshRenderer(true);
+        gameObject.ToggleBoxCollider(true);
     }
 
     public void Fire()
@@ -73,11 +73,11 @@ public class Enemy : MonoBehaviour, IDamageable
             var parent = other.transform.parent;
             if (parent != null)
             {
-				var damageable = parent.GetComponent<IDamageable>();
-				if (damageable != null)
-				{
-					damageable.TakeDamage(gameObject, other);
-				}
+                var damageable = parent.GetComponent<IDamageable>();
+                if (damageable != null)
+                {
+                    damageable.TakeDamage(gameObject, other);
+                }
             }
         };
     }
@@ -94,17 +94,9 @@ public class Enemy : MonoBehaviour, IDamageable
         }
     }
 
-	public void TakeDamage(GameObject attacker, Collider collided)
+    public void TakeDamage(GameObject attacker, Collider collided)
     {
         this.Alive = false;
-
-		// call callback if the attacker is Player
-		var player = attacker.GetComponent<Player>();
-		if (player != null)
-		{
-			player.OnEnemyDefeated(this);
-		}
-
         this.StartCoroutine(StartDeadAnimation());
     }
 
@@ -119,25 +111,7 @@ public class Enemy : MonoBehaviour, IDamageable
 
         yield return new WaitForSeconds(0.06f);
 
-        ToggleRenderer(false);
-        ToggleCollider(false);
-    }
-
-    private void ToggleRenderer(bool enable)
-    {
-        var renderers = GetComponentsInChildren<MeshRenderer>();
-        for (int i = 0; i < renderers.Length; i++)
-        {
-            renderers[i].enabled = enable;
-        }
-    }
-
-    private void ToggleCollider(bool enable)
-    {
-        var colliders = GetComponentsInChildren<BoxCollider>();
-        for (int i = 0; i < colliders.Length; i++)
-        {
-            colliders[i].enabled = enable;
-        }
+        gameObject.ToggleMeshRenderer(false);
+        gameObject.ToggleBoxCollider(false);
     }
 }

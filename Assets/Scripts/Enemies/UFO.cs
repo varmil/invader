@@ -1,0 +1,92 @@
+﻿using System;
+using System.Collections;
+using UnityEngine;
+
+public class UFO : MonoBehaviour, IDamageable, IEnemy
+{
+    /// <summary>
+    /// 移動速度
+    /// </summary>
+    private static readonly float Speed = .08F;
+
+    /// <summary>
+    /// UFOの得点は擬似乱数
+    /// </summary>
+    public int Score { get; private set; }
+
+    /// <summary>
+    /// 生存しているか
+    /// </summary>
+    public bool Alive { get; private set; }
+
+
+    /// <summary>
+    /// UFOが生存したまま逃げてしまったときのcallback
+    /// </summary>
+    public Action OnGone { get; set; }
+
+    /// <summary>
+    /// UFOが撃墜されたときのcallback
+    /// </summary>
+    public Action OnDead { get; set; }
+
+    private Renderer ufoRenderer;
+
+    private bool canMove;
+
+    private Vector3 movingVector;
+
+    void Awake()
+    {
+        ufoRenderer = GetComponentInChildren<MeshRenderer>();
+    }
+
+    void Update()
+    {
+        // 移動
+        if (Alive && canMove)
+        {
+            transform.position += movingVector * Speed;
+        }
+
+        // 生きたまま画面外に出たらcallback（絶対値比較なので便宜的にRightEndを用いる）
+        if (Alive && Mathf.Abs(transform.position.x) > Constants.Stage.UFORightEnd)
+        {
+            OnGone();
+        }
+    }
+
+    public void Initialize(Vector3 movingVector)
+    {
+        this.Alive = true;
+        this.Score = 300;
+
+        this.canMove = false;
+        this.movingVector = movingVector;
+    }
+
+    public void TakeDamage(GameObject attacker, Collider collided)
+    {
+        this.Alive = false;
+        this.StartCoroutine(StartDeadAnimation());
+    }
+
+    public void StartMoving()
+    {
+        canMove = true;
+    }
+
+    private IEnumerator StartDeadAnimation()
+    {
+        // ための一瞬
+        yield return new WaitForSeconds(0.05f);
+
+        ParticleManager.Instance.Play("Prefabs/Particles/EnemyDead",
+            transform.position + (Vector3.up * 0.1f),
+            ufoRenderer.material);
+
+        yield return new WaitForSeconds(0.06f);
+
+        OnDead();
+    }
+}

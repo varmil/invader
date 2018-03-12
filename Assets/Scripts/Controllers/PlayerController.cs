@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
     public bool CanMove { get; private set; }
 
     // 敵を倒したときのcallback（伝播）
-    public Action<Enemy> OnEnemyDefeated { get; set; }
+    public Action<IEnemy> OnEnemyDefeated { get; set; }
 
     // 自機の死亡処理が始まった際のcallback（伝播）
     public Action OnDeadAnimationStart { get; set; }

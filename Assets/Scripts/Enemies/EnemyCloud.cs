@@ -8,8 +8,6 @@ using UnityEngine;
  */
 public class EnemyCloud : MonoBehaviour
 {
-    // 最も高い位置の初期Y座標
-    private static readonly float FirstLineYPos = 15f;
     // 敵のbeam発射間隔ベース値
     private static readonly float BaseFiringIntervalSec = 0.8f;
     // 敵のスコア
@@ -180,7 +178,7 @@ public class EnemyCloud : MonoBehaviour
     {
         for (int i = 0; i < this.lines.Count; i++)
         {
-            this.lines[i].transform.position = new Vector3(0f, FirstLineYPos - (i * 1.5f), 0f);
+            this.lines[i].transform.position = new Vector3(0f, Constants.Stage.FirstLineYPos - (i * 1.5f), 0f);
         }
     }
 }

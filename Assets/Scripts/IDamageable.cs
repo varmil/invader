@@ -3,5 +3,5 @@
 // can take damage
 public interface IDamageable
 {
-	void TakeDamage(GameObject attacker, Collider collided);
+    void TakeDamage(GameObject attacker, Collider collided);
 }

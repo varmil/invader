@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Linq;
 using UnityEngine;
 
 /**
@@ -9,6 +10,12 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
     // 敵撃破時にこの秒数だけ全体が止まる
     private static readonly float PausingSec = 0.3f;
 
+    // UFOが出現する間隔（開始から25秒間隔）
+    private static readonly float UFOInterval = 25f;
+
+    // UFOはインベーダーの数が残り7体以下になると出現しなくなる
+    private static readonly float UFONotAppearingThreshold = 7;
+
     [SerializeField]
     private EnemyController enemyController;
 
@@ -18,7 +25,7 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
     Coroutine PausingEnemyCoroutine = null;
 
     // 自機が死んだ後など、ゲーム全体を停止させるときはtrue
-    bool IsPausingGame = false;
+    bool isPausingGame = false;
 
     void Awake()
     {
@@ -28,7 +35,7 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
             ScoreStore.Instance.AddScore(enemy.Score);
 
             // 敵を一時停止（既に停止中の場合は、停止時間を引き伸ばすことはしない）
-            if (!IsPausingGame && PausingEnemyCoroutine == null)
+            if (!isPausingGame && PausingEnemyCoroutine == null)
             {
                 PausingEnemyCoroutine = StartCoroutine(PauseEnemiesShortly());
             }
@@ -37,7 +44,7 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
         playerController.OnDeadAnimationStart += () =>
         {
             // 強制停止し、敵撃破時のストップモーションも中断
-            IsPausingGame = true;
+            isPausingGame = true;
             if (PausingEnemyCoroutine != null)
             {
                 StopCoroutine(PausingEnemyCoroutine);
@@ -66,9 +73,26 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
     {
         // enemy process
         StartCoroutine(InitializeEnemies());
+        StartCoroutine(InitializeUFO());
 
         // player process
         playerController.Initialize();
+    }
+
+    /// <summary>
+    /// 時間制御したいのでコルーチン
+    /// </summary>
+    private IEnumerator InitializeUFO()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(UFOInterval);
+
+            if (enemyController.AliveEnemies.Count() > UFONotAppearingThreshold)
+            {
+                enemyController.MakeUFOAppear();
+            }
+        }
     }
 
     /// <summary>
@@ -88,7 +112,7 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
     }
 
     /// <summary>
-    /// 敵全体を一時停止
+    /// 敵撃破後の短期一時停止
     /// </summary>
     private IEnumerator PauseEnemiesShortly()
     {
@@ -110,7 +134,7 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
         // リスキル防止用にプレイヤーの方が若干早く動けるように
         yield return new WaitForSeconds(0.2f);
 
-        IsPausingGame = false;
+        isPausingGame = false;
         enemyController.Resume();
     }
 }
