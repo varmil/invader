@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, IDamageable
 {
     // （デバッグ用）
     public bool Invincible;
@@ -82,23 +82,21 @@ public class Player : MonoBehaviour
             var parent = other.transform.parent;
             if (parent != null)
             {
-                var enemy = parent.GetComponent<Enemy>();
-                if (enemy != null && enemy.Alive)
-                {
-                    OnEnemyDefeated(enemy);
-                    enemy.Die();
-                }
-
-                var tochka = parent.GetComponent<Tochka>();
-                if (tochka != null)
-                {
-                    tochka.TakeDamage(other);
-                }
+				var damageable = parent.GetComponent<IDamageable>();
+				if (damageable != null)
+				{
+					damageable.TakeDamage(gameObject, other);
+				}
             }
         };
     }
 
-    public IEnumerator Die()
+	public void TakeDamage(GameObject attacker, Collider collided)
+	{
+		StartCoroutine (Die ());
+	}
+
+    private IEnumerator Die()
     {
         // 無敵なら死なない
         if (Invincible) yield break;

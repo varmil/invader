@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemy : MonoBehaviour
+public class Enemy : MonoBehaviour, IDamageable
 {
     // Fire時、自分のどの程度下にBeamを出現させるか
     private static readonly float BeamOffsetYRate = 1.5f;
@@ -73,17 +73,11 @@ public class Enemy : MonoBehaviour
             var parent = other.transform.parent;
             if (parent != null)
             {
-                var player = parent.GetComponent<Player>();
-                if (player != null)
-                {
-                    StartCoroutine(player.Die());
-                }
-
-                var tochka = parent.GetComponent<Tochka>();
-                if (tochka != null)
-                {
-                    tochka.TakeDamage(other);
-                }
+				var damageable = parent.GetComponent<IDamageable>();
+				if (damageable != null)
+				{
+					damageable.TakeDamage(gameObject, other);
+				}
             }
         };
     }
@@ -100,9 +94,17 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    public void Die()
+	public void TakeDamage(GameObject attacker, Collider collided)
     {
         this.Alive = false;
+
+		// call callback if the attacker is Player
+		var player = attacker.GetComponent<Player>();
+		if (player != null)
+		{
+			player.OnEnemyDefeated(this);
+		}
+
         this.StartCoroutine(StartDeadAnimation());
     }
 
