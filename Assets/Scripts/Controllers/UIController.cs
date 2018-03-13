@@ -20,7 +20,7 @@ public class UIController : MonoBehaviour
 
     void Awake()
     {
-        currentScoreView = transform.Find("Scores/Score1Value").GetComponent<ScoreView>();
+        currentScoreView = transform.Find("Header/Score1Value").GetComponent<ScoreView>();
         playerLifeView = transform.Find("Footer/Life").GetComponent<PlayerLifeView>();
 
         // set datasource
