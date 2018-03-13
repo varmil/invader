@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,6 +25,11 @@ public class Enemy : MonoBehaviour, IDamageable, IEnemy
     {
         get { return transform.localScale.y; }
     }
+	
+	/// <summary>
+	/// callback when the object should be invisible
+	/// </summary>
+	public Action OnDead { get; set; }
 
     // 移動時に動的にメッシュ差し替えを行う
     [SerializeField]
@@ -53,9 +59,6 @@ public class Enemy : MonoBehaviour, IDamageable, IEnemy
         this.Alive = true;
         this.Id = id;
         this.Score = score;
-
-        gameObject.ToggleMeshRenderer(true);
-        gameObject.ToggleBoxCollider(true);
     }
 
     public void Fire()
@@ -102,16 +105,13 @@ public class Enemy : MonoBehaviour, IDamageable, IEnemy
 
     private IEnumerator StartDeadAnimation()
     {
-        // ための一瞬
-        yield return new WaitForSeconds(0.05f);
-
+        // material is switched Red color temporally
         ParticleManager.Instance.Play("Prefabs/Particles/EnemyDead",
             transform.position + (Vector3.up * 0.1f),
             meshFilter.GetComponent<Renderer>().material);
 
         yield return new WaitForSeconds(0.06f);
 
-        gameObject.ToggleMeshRenderer(false);
-        gameObject.ToggleBoxCollider(false);
+        OnDead();
     }
 }

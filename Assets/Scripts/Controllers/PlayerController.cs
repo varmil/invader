@@ -19,50 +19,46 @@ public class PlayerController : MonoBehaviour
     // 自機の死亡処理が終わった後のcallback（伝播）
     public Action OnDeadAnimationEnd { get; set; }
 
-    private Player player;
-
+    public Player Player { get; private set; }
+    
     void Awake()
     {
-        player = transform.Find("Player").GetComponent<Player>();
-
-        player.OnEnemyDefeated = (e) => this.OnEnemyDefeated(e);
-
-        player.OnDeadAnimationStart = () => this.OnDeadAnimationStart();
-
-        player.OnDeadAnimationEnd = () => this.OnDeadAnimationEnd();
+        Player = transform.Find("Player").GetComponent<Player>();
     }
 
     void Update()
     {
-        if (!player.Alive || !CanMove) return;
+        if (!Player.Alive || !CanMove)
+            return;
 
         if (Input.GetKey(KeyCode.A))
         {
-            if (player.transform.position.x > Constants.Stage.LeftEnd)
+            if (Player.transform.position.x > Constants.Stage.LeftEnd)
             {
-                player.MoveLeft();
+                Player.MoveLeft();
             }
         }
 
         if (Input.GetKey(KeyCode.D))
         {
-            if (player.transform.position.x < Constants.Stage.RightEnd)
+            if (Player.transform.position.x < Constants.Stage.RightEnd)
             {
-                player.MoveRight();
+                Player.MoveRight();
             }
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            player.Fire();
+            Player.Fire();
         }
     }
 
     public void Initialize()
     {
         CanMove = true;
+        InitializePlayer();
     }
-
+    
     public void Pause()
     {
         CanMove = false;
@@ -75,8 +71,30 @@ public class PlayerController : MonoBehaviour
 
     public IEnumerator Reborn()
     {
-        player.Initialize();
+        InitializePlayer();
+
+        // wait for appearing animation
         yield return new WaitForSeconds(0.5f);
     }
-
+    
+    private void InitializePlayer()
+    {
+        Player.Initialize();
+        
+        Player.OnEnemyDefeated = (e) => this.OnEnemyDefeated(e);
+        
+        Player.OnDeadAnimationStart = () => this.OnDeadAnimationStart();
+        
+        Player.OnDead = () => {
+            // SetActive = false にするとコルーチンも消滅するので切り替えでしのぐ
+            Player.gameObject.ToggleMeshRenderer(false);
+            Player.gameObject.ToggleBoxCollider(false);
+        };
+        
+        Player.OnDeadAnimationEnd = () => this.OnDeadAnimationEnd();
+        
+        // show player
+        Player.gameObject.ToggleMeshRenderer(true);
+        Player.gameObject.ToggleBoxCollider(true);
+    }
 }

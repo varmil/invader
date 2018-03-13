@@ -21,6 +21,9 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
 
     [SerializeField]
     private PlayerController playerController;
+    
+    [SerializeField]
+    private UIController uiController;
 
     Coroutine PausingEnemyCoroutine = null;
 
@@ -52,6 +55,9 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
             }
             playerController.Pause();
             enemyController.Pause();
+
+            // change all material color to red
+            MaterialManager.Instance.ChangeAllColorRed();
         };
 
         playerController.OnDeadAnimationEnd += () =>
@@ -60,9 +66,9 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
             if (PlayerStore.Instance.Life > 0)
             {
                 PlayerStore.Instance.Life--;
+                MaterialManager.Instance.RestoreAllColor();
                 StartCoroutine(RebornGame());
-            }
-            else
+            } else
             {
                 // TODO: game over
             }
@@ -77,6 +83,11 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
 
         // player process
         playerController.Initialize();
+        MaterialManager.Instance.Add(playerController.Player.GetComponentsInChildren<MeshRenderer>());
+        
+        // ui process
+        uiController.Initialize();
+        MaterialManager.Instance.Add(uiController.Texts);
     }
 
     /// <summary>
@@ -90,7 +101,8 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
 
             if (enemyController.AliveEnemies.Count() > UFONotAppearingThreshold)
             {
-                enemyController.MakeUFOAppear();
+                var ufo = enemyController.MakeUFOAppear();
+                MaterialManager.Instance.Add(ufo.GetComponentInChildren<MeshRenderer>());
             }
         }
     }
@@ -100,7 +112,8 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
     /// </summary>
     private IEnumerator InitializeEnemies()
     {
-        enemyController.CreateEnemies();
+        var enemies = enemyController.CreateEnemies();
+        MaterialManager.Instance.Add(enemies.Select(e => e.GetComponentInChildren<MeshRenderer>()));
 
         yield return new WaitForSeconds(0.3f);
 

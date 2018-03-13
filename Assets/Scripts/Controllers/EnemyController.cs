@@ -72,9 +72,10 @@ public class EnemyController : MonoBehaviour
         enemyCloud = transform.Find("Lines").GetComponent<EnemyCloud>();
     }
 
-    public IEnumerable<IEnumerable<Enemy>> CreateEnemies()
+    public IEnumerable<Enemy> CreateEnemies()
     {
-        return enemyCloud.CreateEnemies();
+        // return flatten values
+        return enemyCloud.CreateEnemies().SelectMany(e => e);
     }
 
     public IEnumerator StartFiring()
@@ -109,7 +110,7 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    public void MakeUFOAppear()
+    public UFO MakeUFOAppear()
     {
         var direction = (UFOMoveDirection)UnityEngine.Random.Range(0, 2);
         var pos = (direction == UFOMoveDirection.Right)
@@ -128,6 +129,8 @@ public class EnemyController : MonoBehaviour
         component.OnDead = () => ObjectPool.Instance.Release(ufo);
 
         component.StartMoving();
+
+        return component;
     }
 
     public void Pause()

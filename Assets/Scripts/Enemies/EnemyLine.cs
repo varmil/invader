@@ -36,7 +36,6 @@ public class EnemyLine : MonoBehaviour
     }
 
     private List<Enemy> enemies = new List<Enemy>(EnemyAmountPerLine);
-
     private GameObject enemyPrefab;
 
     void Awake()
@@ -80,11 +79,12 @@ public class EnemyLine : MonoBehaviour
         for (int i = 0; i < EnemyAmountPerLine; i++)
         {
             var position = new Vector3((float)(i * EnemyXSpace - OffsetX), 0f, 0f);
-            var obj = Instantiate(this.enemyPrefab, position, Quaternion.identity);
+            var obj = ObjectPool.Instance.Get(this.enemyPrefab, position, Quaternion.identity);
             obj.transform.SetParent(this.transform, false);
 
             var enemy = obj.GetComponent<Enemy>();
             enemy.Initialize(this.name + "-enemy::" + i, ScorePerEnemy);
+            enemy.OnDead = () => ObjectPool.Instance.Release(obj);
             enemies.Add(enemy);
         }
         return enemies;

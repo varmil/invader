@@ -19,21 +19,18 @@ public class UFO : MonoBehaviour, IDamageable, IEnemy
     /// </summary>
     public bool Alive { get; private set; }
 
-
     /// <summary>
     /// UFOが生存したまま逃げてしまったときのcallback
     /// </summary>
     public Action OnGone { get; set; }
 
     /// <summary>
-    /// UFOが撃墜されたときのcallback
+    /// callback when the object should be invisible
     /// </summary>
     public Action OnDead { get; set; }
 
     private Renderer ufoRenderer;
-
     private bool canMove;
-
     private Vector3 movingVector;
 
     void Awake()
@@ -78,9 +75,6 @@ public class UFO : MonoBehaviour, IDamageable, IEnemy
 
     private IEnumerator StartDeadAnimation()
     {
-        // ための一瞬
-        yield return new WaitForSeconds(0.05f);
-
         ParticleManager.Instance.Play("Prefabs/Particles/EnemyDead",
             transform.position + (Vector3.up * 0.1f),
             ufoRenderer.material);

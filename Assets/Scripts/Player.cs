@@ -30,15 +30,22 @@ public class Player : MonoBehaviour, IDamageable
 
     // 自機の死亡処理が始まった際のcallback
     public Action OnDeadAnimationStart { get; set; }
+    
+    // callback when the object should be invisible
+    public Action OnDead { get; set; }
 
     // 自機の死亡処理が終わった後のcallback
     public Action OnDeadAnimationEnd { get; set; }
 
     private GameObject beamPrefab;
-
+    private MeshFilter meshFilter;
+    
     void Awake()
     {
         beamPrefab = (GameObject)Resources.Load("Prefabs/PlayerBeam");
+
+        // get MeshFilter, its renderer material is used when Player is dead
+        meshFilter = transform.GetComponentInChildren<MeshFilter>();
 
         Initialize();
     }
@@ -46,9 +53,6 @@ public class Player : MonoBehaviour, IDamageable
     public void Initialize()
     {
         this.Alive = true;
-
-        gameObject.ToggleMeshRenderer(true);
-        gameObject.ToggleBoxCollider(true);
     }
 
     public void MoveRight()
@@ -105,7 +109,8 @@ public class Player : MonoBehaviour, IDamageable
     private IEnumerator Die()
     {
         // 無敵なら死なない
-        if (Invincible) yield break;
+        if (Invincible)
+            yield break;
 
         this.Alive = false;
 
@@ -116,18 +121,15 @@ public class Player : MonoBehaviour, IDamageable
 
     private IEnumerator StartDeadAnimation()
     {
-        // ための一瞬
-        yield return new WaitForSeconds(0.1f);
-
+        // material is switched Red color temporally
         ParticleManager.Instance.Play("Prefabs/Particles/PlayerDead",
-            transform.position + (Vector3.down * 1f));
+            transform.position + (Vector3.down * 1f),
+            meshFilter.GetComponent<Renderer>().material);
 
         yield return new WaitForSeconds(0.06f);
 
-        // SetActive = false にするとコルーチンも消滅するので切り替えでしのぐ
-        gameObject.ToggleMeshRenderer(false);
-        gameObject.ToggleBoxCollider(false);
-
+        OnDead();
+        
         // アニメーション終了まで適当に待つ
         yield return new WaitForSeconds(1f);
     }
