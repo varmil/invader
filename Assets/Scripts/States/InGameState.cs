@@ -2,9 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-public class InGameState : MonoBehaviour, IAppState
+public class InGameState : AppState
 {
+    public override string SceneName
+    {
+        get { return "InGameScene"; }
+    }
+
     // 敵撃破時にこの秒数だけ全体が止まる
     private static readonly float PausingSec = 0.3f;
     
@@ -14,23 +20,47 @@ public class InGameState : MonoBehaviour, IAppState
     // UFOはインベーダーの数が残り7体以下になると出現しなくなる
     private static readonly float UFONotAppearingThreshold = 7;
     
-    [SerializeField]
     private EnemyController enemyController;
-    
-    [SerializeField]
     private PlayerController playerController;
+    private InGameUIController uiController;
     
-    [SerializeField]
-    private UIController uiController;
-    
-    Coroutine PausingEnemyCoroutine = null;
+    private Coroutine PausingEnemyCoroutine = null;
+    private bool pressedEscape = false;
     
     // 自機が死んだ後など、ゲーム全体を停止させるときはtrue
     bool isPausingGame = false;
     
-    void Awake()
+    public override IEnumerator OnEnter()
     {
-        playerController.OnEnemyDefeated += (enemy) =>
+        yield return StartCoroutine(base.OnEnter());
+
+        // search controllers
+        var rootObjects = GetRootObjects().ToArray();
+        var entities = rootObjects.First(e => e.name == "Entities");
+        var ui = rootObjects.First(e => e.name == "UICanvas");
+        enemyController = entities.GetComponentInChildren<EnemyController>();
+        playerController = entities.GetComponentInChildren<PlayerController>();
+        uiController = ui.GetComponent<InGameUIController>();
+        
+
+
+
+        // clean this state
+        Initialize();
+
+
+
+
+        // enemy process
+        StartCoroutine(InitializeEnemies());
+        StartCoroutine(InitializeUFO());
+
+
+
+
+        // player process
+        playerController.Initialize();
+        playerController.OnEnemyDefeated = (enemy) =>
         {
             // スコア加算
             ScoreStore.Instance.AddScore(enemy.Score);
@@ -42,7 +72,7 @@ public class InGameState : MonoBehaviour, IAppState
             }
         };
         
-        playerController.OnDeadAnimationStart += () =>
+        playerController.OnDeadAnimationStart = () =>
         {
             // 強制停止し、敵撃破時のストップモーションも中断
             isPausingGame = true;
@@ -58,7 +88,7 @@ public class InGameState : MonoBehaviour, IAppState
             MaterialManager.Instance.ChangeAllColorRed();
         };
         
-        playerController.OnDeadAnimationEnd += () =>
+        playerController.OnDeadAnimationEnd = () =>
         {
             // 復活チェック
             if (PlayerStore.Instance.Life > 0)
@@ -71,31 +101,36 @@ public class InGameState : MonoBehaviour, IAppState
                 // TODO: game over
             }
         };
-    }
-    
-    public void OnEnter()
-    {
-        // enemy process
-        StartCoroutine(InitializeEnemies());
-        StartCoroutine(InitializeUFO());
-        
-        // player process
-        playerController.Initialize();
         MaterialManager.Instance.Add(playerController.Player.GetComponentsInChildren<MeshRenderer>());
-        
+
+
+
+
         // ui process
-        uiController.ShowInGame();
         MaterialManager.Instance.Add(uiController.Texts);
+
+        yield return null;
     }
 
-    public void Tick()
+    public override void Tick()
     {
-        
+        if (!pressedEscape && Input.GetKeyDown(KeyCode.Escape))
+        {
+            pressedEscape = true;
+            
+            // go to title scene
+            GameProcessManager.Instance.SetState(GetComponent<TitleState>());
+        }   
     }
     
-    public void OnLeave()
+    public override IEnumerator OnLeave()
     {
-        uiController.HideInGame();
+        yield return StartCoroutine(base.OnLeave());
+    }
+    
+    private void Initialize()
+    {
+        pressedEscape = false;
     }
 
     /// <summary>

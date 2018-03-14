@@ -23,7 +23,7 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
     
     private void Update()
     {
-        Debug.Log(currentState);
+//        Debug.Log(currentState);
         currentState.Tick();
     }
 
@@ -37,15 +37,15 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
         if (currentState != null)
         {
             yield return fader.FadeIn(1.0f);
-            currentState.OnLeave();
+            yield return StartCoroutine(currentState.OnLeave());
         }
         
         currentState = state;
         
         if (currentState != null)
         {
+            yield return StartCoroutine(currentState.OnEnter());
             yield return fader.FadeOut(1.0f);
-            currentState.OnEnter();
         }
     }
 }

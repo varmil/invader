@@ -1,21 +1,32 @@
-﻿using System.Collections;
+﻿using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-public class TitleState : MonoBehaviour, IAppState
+public class TitleState : AppState
 {
-    [SerializeField]
-    private UIController uiController;
+    public override string SceneName
+    {
+        get { return "TitleScene"; }
+    }
+
+    private TitleUIController uiController;
 
     // pressed SPACE key ?
     private bool pressed = false;
 
-    public void OnEnter()
+    public override IEnumerator OnEnter()
     {
-        uiController.ShowTitle();
+        yield return StartCoroutine(base.OnEnter());
+
+        var rootObjects = GetRootObjects();
+        uiController = rootObjects.First(e => e.name == "UICanvas").GetComponent<TitleUIController>();
+
+        Initialize();
     }
     
-    public void Tick()
+    public override void Tick()
     {
         if (!pressed && Input.GetKeyDown(KeyCode.Space))
         {
@@ -26,8 +37,13 @@ public class TitleState : MonoBehaviour, IAppState
         }
     }
     
-    public void OnLeave()
+    public override IEnumerator OnLeave()
     {
-        uiController.HideTitle();
+        yield return StartCoroutine(base.OnLeave());
+    }
+
+    private void Initialize()
+    {
+        pressed = false;
     }
 }

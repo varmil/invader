@@ -1,9 +1,11 @@
-﻿// all Game States should implement this
+﻿using System.Collections;
+
+// all Game States should implement this
 public interface IAppState 
 {
-    void OnEnter();
+    IEnumerator OnEnter();
 	
     void Tick();
 
-    void OnLeave();
+    IEnumerator OnLeave();
 }

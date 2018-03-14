@@ -6,7 +6,7 @@ using System.Collections.Generic;
 /**
  * UIの大元たる親コントローラ
  */
-public class UIController : MonoBehaviour
+public class InGameUIController : MonoBehaviour
 {
     // all text components
     public IEnumerable<Text> Texts
@@ -15,8 +15,6 @@ public class UIController : MonoBehaviour
         private set;
     }
 
-    // not create the class yet
-    private GameObject titleView;
     private GameObject inGameView;
 
     private ScoreView currentScoreView;
@@ -24,9 +22,8 @@ public class UIController : MonoBehaviour
 
     void Awake()
     {
-        titleView = transform.Find("Title").gameObject;
         inGameView = transform.Find("InGame").gameObject;
-
+        
         currentScoreView = transform.Find("InGame/Header/Score1Value").GetComponent<ScoreView>();
         playerLifeView = transform.Find("InGame/Footer/Life").GetComponent<PlayerLifeView>();
 
@@ -35,20 +32,6 @@ public class UIController : MonoBehaviour
         playerLifeView.DataSource = PlayerStore.Instance;
 
         SetAllTexts();
-    }
-
-    public void Initialize()
-    {
-    }
-
-    public void ShowTitle()
-    {
-        titleView.SetActive(true);
-    }
-
-    public void HideTitle()
-    {
-        titleView.SetActive(false);
     }
 
     public void ShowInGame()
