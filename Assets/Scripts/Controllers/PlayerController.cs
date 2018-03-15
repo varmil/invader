@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
     public Action OnDeadAnimationEnd { get; set; }
 
     public Player Player { get; private set; }
-    
+
     void Awake()
     {
         Player = transform.Find("Player").GetComponent<Player>();
@@ -55,10 +55,15 @@ public class PlayerController : MonoBehaviour
 
     public void Initialize()
     {
-        CanMove = true;
+        CanMove = false;
         InitializePlayer();
     }
-    
+
+    public void EnableMoving()
+    {
+        CanMove = true;
+    }
+
     public void Pause()
     {
         CanMove = false;
@@ -76,23 +81,24 @@ public class PlayerController : MonoBehaviour
         // wait for appearing animation
         yield return new WaitForSeconds(0.5f);
     }
-    
+
     private void InitializePlayer()
     {
         Player.Initialize();
-        
+
         Player.OnEnemyDefeated = (e) => this.OnEnemyDefeated(e);
-        
+
         Player.OnDeadAnimationStart = () => this.OnDeadAnimationStart();
-        
-        Player.OnDead = () => {
+
+        Player.OnDead = () =>
+        {
             // SetActive = false にするとコルーチンも消滅するので切り替えでしのぐ
             Player.gameObject.ToggleMeshRenderer(false);
             Player.gameObject.ToggleBoxCollider(false);
         };
-        
+
         Player.OnDeadAnimationEnd = () => this.OnDeadAnimationEnd();
-        
+
         // show player
         Player.gameObject.ToggleMeshRenderer(true);
         Player.gameObject.ToggleBoxCollider(true);

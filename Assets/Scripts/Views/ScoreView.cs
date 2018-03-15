@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using FOO = IObserver;
 
 public class ScoreView : MonoBehaviour, IObserver
 {
@@ -15,6 +16,9 @@ public class ScoreView : MonoBehaviour, IObserver
         {
             value.Subscribe(this);
             dataSource = value;
+
+            // get initial value
+            ValueChanged(dataSource.CurrentScore);
         }
     }
 
@@ -23,13 +27,8 @@ public class ScoreView : MonoBehaviour, IObserver
         label = GetComponent<Text>();
     }
 
-    void Start()
+    public void ValueChanged(object value)
     {
-        label.text = DataSource.CurrentScore.ToString().PadLeft(PaddingWidth, '0');
-    }
-
-    void IObserver.Update()
-    {
-        label.text = DataSource.CurrentScore.ToString().PadLeft(PaddingWidth, '0');
+        label.text = value.ToString().PadLeft(PaddingWidth, '0');
     }
 }

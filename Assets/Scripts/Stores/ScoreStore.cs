@@ -1,26 +1,8 @@
 ﻿/**
- * Singleton && Observableなスコア管理クラス
+ * Observableなスコア管理クラス
  */
 public class ScoreStore : Subject
 {
-    // --------------- TEMPLATE ---------------
-    private static ScoreStore instance;
-
-    private ScoreStore() { }
-
-    public static ScoreStore Instance
-    {
-        get
-        {
-            if (ScoreStore.instance == null)
-            {
-                ScoreStore.instance = new ScoreStore();
-            }
-            return ScoreStore.instance;
-        }
-    }
-    // --------------- TEMPLATE END ---------------
-
     private int hiScore = 0;
     public int HiScore
     {
@@ -32,7 +14,7 @@ public class ScoreStore : Subject
         private set
         {
             hiScore = value;
-            Notify();
+            Notify(hiScore);
         }
     }
 
@@ -47,8 +29,14 @@ public class ScoreStore : Subject
         private set
         {
             currentScore = value;
-            Notify();
+            Notify(currentScore);
         }
+    }
+
+    public void SetDefault()
+    {
+        HiScore = 0;
+        CurrentScore = 0;
     }
 
     // 加算

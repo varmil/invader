@@ -20,25 +20,37 @@ public class InGameUIController : MonoBehaviour
     private ScoreView currentScoreView;
     private PlayerLifeView playerLifeView;
 
+    private GlobalStore globalStore;
+
     void Awake()
     {
         inGameView = transform.Find("InGame").gameObject;
-        
-        currentScoreView = transform.Find("InGame/Header/Score1Value").GetComponent<ScoreView>();
-        playerLifeView = transform.Find("InGame/Footer/Life").GetComponent<PlayerLifeView>();
-
-        // set datasource
-        currentScoreView.DataSource = ScoreStore.Instance;
-        playerLifeView.DataSource = PlayerStore.Instance;
+        currentScoreView = inGameView.transform.Find("Header/Score1Value").GetComponent<ScoreView>();
+        playerLifeView = inGameView.transform.Find("Footer/Life").GetComponent<PlayerLifeView>();
 
         SetAllTexts();
+    }
+
+    void OnDestroy()
+    {
+        globalStore.ScoreStore.Unsubscribe(currentScoreView);
+        globalStore.PlayerStore.Unsubscribe(playerLifeView);
+    }
+
+    public void Initialize(GlobalStore store)
+    {
+        globalStore = store;
+
+        // set datasource
+        currentScoreView.DataSource = globalStore.ScoreStore;
+        playerLifeView.DataSource = globalStore.PlayerStore;
     }
 
     public void ShowInGame()
     {
         inGameView.SetActive(true);
     }
-    
+
     public void HideInGame()
     {
         inGameView.SetActive(false);

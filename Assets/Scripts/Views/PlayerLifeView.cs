@@ -3,7 +3,6 @@ using UnityEngine.UI;
 
 public class PlayerLifeView : MonoBehaviour, IObserver
 {
-    [SerializeField]
     private Text label;
 
     private PlayerStore dataSource;
@@ -14,17 +13,19 @@ public class PlayerLifeView : MonoBehaviour, IObserver
         {
             value.Subscribe(this);
             dataSource = value;
+
+            // get initial value
+            ValueChanged(dataSource.Life);
         }
     }
 
-    void Start()
+    void Awake()
     {
-        // 初期値設定
-        label.text = DataSource.Life.ToString();
+        label = GetComponentInChildren<Text>();
     }
 
-    void IObserver.Update()
+    public void ValueChanged(object value)
     {
-        label.text = DataSource.Life.ToString();
+        label.text = value.ToString();
     }
 }

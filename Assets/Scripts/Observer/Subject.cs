@@ -14,11 +14,11 @@ public abstract class Subject
         observers.Remove(observer);
     }
 
-    public void Notify()
+    public void Notify(object value)
     {
         for (int i = 0; i < observers.Count; i++)
         {
-            observers[i].Update();
+            observers[i].ValueChanged(value);
         }
     }
 }

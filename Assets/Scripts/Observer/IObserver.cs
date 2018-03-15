@@ -1,4 +1,4 @@
 ﻿public interface IObserver
 {
-    void Update();
+    void ValueChanged(object value);
 }

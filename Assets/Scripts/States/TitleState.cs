@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class TitleState : AppState
+public class TitleState : AppState, IAppState
 {
     public override string SceneName
     {
@@ -25,7 +25,7 @@ public class TitleState : AppState
 
         Initialize();
     }
-    
+
     public override void Tick()
     {
         if (!pressed && Input.GetKeyDown(KeyCode.Space))
@@ -36,7 +36,7 @@ public class TitleState : AppState
             GameProcessManager.Instance.SetState(GetComponent<InGameState>());
         }
     }
-    
+
     public override IEnumerator OnLeave()
     {
         yield return StartCoroutine(base.OnLeave());

@@ -1,28 +1,9 @@
 ﻿/**
- * Singleton && Observableなスコア管理クラス
+ * Observableなスコア管理クラス
  */
 public class PlayerStore : Subject
 {
-    // --------------- TEMPLATE ---------------
-    private static PlayerStore instance;
-
-    private PlayerStore() { }
-
-    public static PlayerStore Instance
-    {
-        get
-        {
-            if (PlayerStore.instance == null)
-            {
-                PlayerStore.instance = new PlayerStore();
-            }
-            return PlayerStore.instance;
-        }
-    }
-    // --------------- TEMPLATE END ---------------
-
-    // デフォルト残機は３
-    private int life = 3;
+    private int life;
     public int Life
     {
         get
@@ -33,7 +14,17 @@ public class PlayerStore : Subject
         set
         {
             life = value;
-            Notify();
+            Notify(life);
         }
+    }
+
+    public void SetDefault()
+    {
+        Life = Constants.Player.Life;
+    }
+
+    public void DecrementLife()
+    {
+        Life--;
     }
 }

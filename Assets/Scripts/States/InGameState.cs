@@ -4,7 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class InGameState : AppState
+public class InGameState : AppState, IAppState
 {
     public override string SceneName
     {
@@ -13,23 +13,23 @@ public class InGameState : AppState
 
     // 敵撃破時にこの秒数だけ全体が止まる
     private static readonly float PausingSec = 0.3f;
-    
+
     // UFOが出現する間隔（開始から25秒間隔）
     private static readonly float UFOInterval = 25f;
-    
+
     // UFOはインベーダーの数が残り7体以下になると出現しなくなる
     private static readonly float UFONotAppearingThreshold = 7;
-    
+
     private EnemyController enemyController;
     private PlayerController playerController;
     private InGameUIController uiController;
-    
+
     private Coroutine PausingEnemyCoroutine = null;
     private bool pressedEscape = false;
-    
+
     // 自機が死んだ後など、ゲーム全体を停止させるときはtrue
     bool isPausingGame = false;
-    
+
     public override IEnumerator OnEnter()
     {
         yield return StartCoroutine(base.OnEnter());
@@ -41,19 +41,9 @@ public class InGameState : AppState
         enemyController = entities.GetComponentInChildren<EnemyController>();
         playerController = entities.GetComponentInChildren<PlayerController>();
         uiController = ui.GetComponent<InGameUIController>();
-        
 
-
-
-        // clean this state
+        // reset this state
         Initialize();
-
-
-
-
-        // enemy process
-        StartCoroutine(InitializeEnemies());
-        StartCoroutine(InitializeUFO());
 
 
 
@@ -63,15 +53,15 @@ public class InGameState : AppState
         playerController.OnEnemyDefeated = (enemy) =>
         {
             // スコア加算
-            ScoreStore.Instance.AddScore(enemy.Score);
-            
+            GameProcessManager.Instance.GlobalStore.ScoreStore.AddScore(enemy.Score);
+
             // 敵を一時停止（既に停止中の場合は、停止時間を引き伸ばすことはしない）
             if (!isPausingGame && PausingEnemyCoroutine == null)
             {
                 PausingEnemyCoroutine = StartCoroutine(PauseEnemiesShortly());
             }
         };
-        
+
         playerController.OnDeadAnimationStart = () =>
         {
             // 強制停止し、敵撃破時のストップモーションも中断
@@ -83,20 +73,21 @@ public class InGameState : AppState
             }
             playerController.Pause();
             enemyController.Pause();
-            
+
             // change all material color to red
             MaterialManager.Instance.ChangeAllColorRed();
         };
-        
+
         playerController.OnDeadAnimationEnd = () =>
         {
             // 復活チェック
-            if (PlayerStore.Instance.Life > 0)
+            if (GameProcessManager.Instance.GlobalStore.PlayerStore.Life > 0)
             {
-                PlayerStore.Instance.Life--;
+                GameProcessManager.Instance.GlobalStore.PlayerStore.DecrementLife();
                 MaterialManager.Instance.RestoreAllColor();
                 StartCoroutine(RebornGame());
-            } else
+            }
+            else
             {
                 // TODO: game over
             }
@@ -107,7 +98,20 @@ public class InGameState : AppState
 
 
         // ui process
+        uiController.Initialize(GameProcessManager.Instance.GlobalStore);
         MaterialManager.Instance.Add(uiController.Texts);
+
+        yield return null;
+    }
+
+    public override IEnumerator OnFadeOutEnd()
+    {
+        // player process
+        playerController.EnableMoving();
+
+        // enemy process
+        StartCoroutine(MakeEnemiesAppear());
+        StartCoroutine(MakeUFOAppear());
 
         yield return null;
     }
@@ -117,31 +121,40 @@ public class InGameState : AppState
         if (!pressedEscape && Input.GetKeyDown(KeyCode.Escape))
         {
             pressedEscape = true;
-            
+
             // go to title scene
             GameProcessManager.Instance.SetState(GetComponent<TitleState>());
-        }   
+        }
     }
-    
+
     public override IEnumerator OnLeave()
     {
         yield return StartCoroutine(base.OnLeave());
     }
-    
+
     private void Initialize()
     {
+        // reset member
+        isPausingGame = false;
         pressedEscape = false;
+
+        // reset store
+        GameProcessManager.Instance.GlobalStore.PlayerStore.SetDefault();
+        GameProcessManager.Instance.GlobalStore.ScoreStore.SetDefault();
     }
 
     /// <summary>
-    /// 時間制御したいのでコルーチン
+    /// UFO出現カウンタを開始
     /// </summary>
-    private IEnumerator InitializeUFO()
+    private IEnumerator MakeUFOAppear()
     {
         while (true)
         {
             yield return new WaitForSeconds(UFOInterval);
-            
+
+            // do not appear while Game is pausing
+            while (isPausingGame) yield return null;
+
             if (enemyController.AliveEnemies.Count() > UFONotAppearingThreshold)
             {
                 var ufo = enemyController.MakeUFOAppear();
@@ -149,24 +162,24 @@ public class InGameState : AppState
             }
         }
     }
-    
+
     /// <summary>
-    /// 時間制御したいのでコルーチン
+    /// 敵インスタンスを生成し、移動、攻撃開始
     /// </summary>
-    private IEnumerator InitializeEnemies()
+    private IEnumerator MakeEnemiesAppear()
     {
         var enemies = enemyController.CreateEnemies();
         MaterialManager.Instance.Add(enemies.Select(e => e.GetComponentInChildren<MeshRenderer>()));
-        
+
         yield return new WaitForSeconds(0.3f);
-        
+
         StartCoroutine(enemyController.StartCloudMoving());
-        
+
         yield return new WaitForSeconds(0.3f);
-        
+
         StartCoroutine(enemyController.StartFiring());
     }
-    
+
     /// <summary>
     /// 敵撃破後の短期一時停止
     /// </summary>
@@ -175,10 +188,10 @@ public class InGameState : AppState
         enemyController.Pause();
         yield return new WaitForSeconds(PausingSec);
         enemyController.Resume();
-        
+
         PausingEnemyCoroutine = null;
     }
-    
+
     /// <summary>
     /// プレイヤー復活後、敵移動再開
     /// </summary>
@@ -186,10 +199,10 @@ public class InGameState : AppState
     {
         yield return StartCoroutine(playerController.Reborn());
         playerController.Resume();
-        
+
         // リスキル防止用にプレイヤーの方が若干早く動けるように
         yield return new WaitForSeconds(0.2f);
-        
+
         isPausingGame = false;
         enemyController.Resume();
     }

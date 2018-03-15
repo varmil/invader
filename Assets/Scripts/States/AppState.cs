@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 
 public abstract class AppState : MonoBehaviour, IAppState
 {
-    public virtual string SceneName 
+    public virtual string SceneName
     {
         get;
     }
@@ -25,30 +25,38 @@ public abstract class AppState : MonoBehaviour, IAppState
         var scene = SceneManager.GetSceneByName(SceneName);
         SceneManager.SetActiveScene(scene);
 
-        Debug.Log("OnEnter END");
+        Debug.Log("[AppState] OnEnter END");
     }
 
-    
+
     /// <summary>
     /// called every frame
     /// </summary>
     public virtual void Tick()
     {
-
     }
 
     /// <summary>
-    /// unload <SceneName>
+    /// unload <SceneName> with releasing resources
     /// </summary>
     public virtual IEnumerator OnLeave()
     {
         StopAllCoroutines();
-        
-        var ao =SceneManager.UnloadSceneAsync(SceneName);
+
+        var ao = SceneManager.UnloadSceneAsync(SceneName);
         while (!ao.isDone)
         {
             yield return null;
         }
+    }
+
+    /// <summary>
+    /// called when fader.FadeOut() animation is done
+    /// this is useful when you want to start the scene init process after fadeout
+    /// </summary>
+    public virtual IEnumerator OnFadeOutEnd()
+    {
+        yield return null;
     }
 
     protected IEnumerable<GameObject> GetRootObjects()

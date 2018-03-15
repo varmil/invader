@@ -7,45 +7,52 @@ using UnityEngine;
  */
 public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
 {
+    public GlobalStore GlobalStore
+    {
+        get;
+        private set;
+    }
+
     [SerializeField]
     private Fade fader = null;
 
-    private IAppState currentState;
+    private AppState currentState;
 
-//    void Awake()
-//    {
-//    }
-    
+    void Awake()
+    {
+        this.GlobalStore = new GlobalStore();
+    }
+
     void Start()
     {
         SetState(GetComponent<TitleState>());
     }
-    
+
     private void Update()
     {
-//        Debug.Log(currentState);
         currentState.Tick();
     }
 
-    public void SetState(IAppState state)
+    public void SetState(AppState state)
     {
         StartCoroutine(SetStateCoroutine(state));
     }
 
-    private IEnumerator SetStateCoroutine(IAppState state)
+    private IEnumerator SetStateCoroutine(AppState state)
     {
         if (currentState != null)
         {
             yield return fader.FadeIn(1.0f);
             yield return StartCoroutine(currentState.OnLeave());
         }
-        
+
         currentState = state;
-        
+
         if (currentState != null)
         {
             yield return StartCoroutine(currentState.OnEnter());
             yield return fader.FadeOut(1.0f);
+            yield return StartCoroutine(currentState.OnFadeOutEnd());
         }
     }
 }
