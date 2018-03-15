@@ -10,6 +10,11 @@ public class UFO : MonoBehaviour, IDamageable, IEnemy
     private static readonly float Speed = .08F;
 
     /// <summary>
+    /// この中からランダムでスコアを決定する
+    /// </summary>
+    private static readonly int[] RandomScores = new int[] { 300, 150, 100, 50 };
+
+    /// <summary>
     /// UFOの得点は擬似乱数
     /// </summary>
     public int Score { get; private set; }
@@ -56,7 +61,7 @@ public class UFO : MonoBehaviour, IDamageable, IEnemy
     public void Initialize(Vector3 movingVector)
     {
         this.Alive = true;
-        this.Score = 300;
+        this.Score = RandomScores[UnityEngine.Random.Range(0, RandomScores.Length)];
 
         this.canMove = false;
         this.movingVector = movingVector;
