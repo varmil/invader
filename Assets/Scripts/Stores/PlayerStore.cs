@@ -18,6 +18,11 @@ public class PlayerStore : Subject
         }
     }
 
+    public PlayerStore()
+    {
+        SetDefault();
+    }
+
     public void SetDefault()
     {
         Life = Constants.Player.Life;

@@ -18,6 +18,11 @@ public class StageStore : Subject
         }
     }
 
+    public StageStore()
+    {
+        SetDefault();
+    }
+
     public void SetDefault()
     {
         CurrentStage = 0;
@@ -28,6 +33,14 @@ public class StageStore : Subject
     /// </summary>
     public void IncrementStage()
     {
-        CurrentStage++;
+        // stage loops 0 - 7 range
+        if (CurrentStage == 7)
+        {
+            CurrentStage = 0;
+        }
+        else
+        {
+            CurrentStage++;
+        }
     }
 }

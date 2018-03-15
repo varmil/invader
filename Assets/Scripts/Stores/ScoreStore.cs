@@ -33,6 +33,11 @@ public class ScoreStore : Subject
         }
     }
 
+    public ScoreStore()
+    {
+        SetDefault();
+    }
+
     public void SetDefault()
     {
         SetDefaultHiScore();
