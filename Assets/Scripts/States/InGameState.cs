@@ -60,13 +60,7 @@ public class InGameState : AppState, IAppState
 
     public override IEnumerator OnFadeOutEnd()
     {
-        // player process
-        playerController.EnableMoving();
-
-        // enemy process
-        StartCoroutine(MakeEnemiesAppear());
-        StartCoroutine(MakeUFOAppear());
-
+        StartStage(GameProcessManager.Instance.GlobalStore.StageStore.CurrentStage);
         yield return null;
     }
 
@@ -94,11 +88,15 @@ public class InGameState : AppState, IAppState
         isPausingGame = false;
         pressedEscape = false;
 
-        // reset store
-        GameProcessManager.Instance.GlobalStore.PlayerStore.SetDefault();
-        GameProcessManager.Instance.GlobalStore.ScoreStore.SetDefaultCurrentScore();
+        // reset store if it is 1st stage
+        var globalStore = GameProcessManager.Instance.GlobalStore;
+        if (globalStore.StageStore.CurrentStage == 0)
+        {
+            globalStore.PlayerStore.SetDefault();
+            globalStore.ScoreStore.SetDefaultCurrentScore();
 
-        // TODO: load Hi-Score from DB
+            // TODO: load Hi-Score from DB
+        }
     }
 
     private void InitializePlayerController()
@@ -106,8 +104,17 @@ public class InGameState : AppState, IAppState
         playerController.Initialize();
         playerController.OnEnemyDefeated = (enemy) =>
         {
-            // スコア加算
+            // add score
             GameProcessManager.Instance.GlobalStore.ScoreStore.AddScore(enemy.Score);
+
+            // go to next stage if enemies are all dead
+            if (enemyController.AliveEnemies.Count() == 0)
+            {
+                // reload the scene
+                GameProcessManager.Instance.GlobalStore.StageStore.IncrementStage();
+                GameProcessManager.Instance.SetState(GetComponent<InGameState>());
+                return;
+            }
 
             // 敵を一時停止（既に停止中の場合は、停止時間を引き伸ばすことはしない）
             if (!isPausingGame && PausingEnemyCoroutine == null)
@@ -151,6 +158,21 @@ public class InGameState : AppState, IAppState
     }
 
     /// <summary>
+    /// 指定した面を開始する（0 - 7）
+    /// </summary>
+    private void StartStage(int stageNum)
+    {
+        Debug.Log("Start Stage " + GameProcessManager.Instance.GlobalStore.StageStore.CurrentStage);
+
+        // player process
+        playerController.EnableMoving();
+
+        // enemy process
+        StartCoroutine(MakeEnemiesAppear(stageNum));
+        StartCoroutine(MakeUFOAppear());
+    }
+
+    /// <summary>
     /// UFO出現カウンタを開始
     /// </summary>
     private IEnumerator MakeUFOAppear()
@@ -171,11 +193,11 @@ public class InGameState : AppState, IAppState
     }
 
     /// <summary>
-    /// 敵インスタンスを生成し、移動、攻撃開始
+    /// 敵インスタンスを生成し、移動、攻撃開始。ステージ進行に伴って初期Y座標を変える
     /// </summary>
-    private IEnumerator MakeEnemiesAppear()
+    private IEnumerator MakeEnemiesAppear(int stageNum)
     {
-        var enemies = enemyController.CreateEnemies();
+        var enemies = enemyController.CreateEnemies(stageNum);
         MaterialManager.Instance.Add(enemies.Select(e => e.GetComponentInChildren<MeshRenderer>()));
 
         yield return new WaitForSeconds(0.3f);
@@ -221,11 +243,14 @@ public class InGameState : AppState, IAppState
         uiController.ShowGameOver();
 
         // register Hi-Score to the store if it is new record
-        var scoreStore = GameProcessManager.Instance.GlobalStore.ScoreStore;
-        if (scoreStore.CurrentScore > scoreStore.HiScore)
+        var globalStore = GameProcessManager.Instance.GlobalStore;
+        if (globalStore.ScoreStore.CurrentScore > globalStore.ScoreStore.HiScore)
         {
-            scoreStore.UpdateHiScore();
+            globalStore.ScoreStore.UpdateHiScore();
         }
+
+        // reset current stage info
+        globalStore.StageStore.SetDefault();
 
         yield return new WaitForSeconds(0.8f);
 

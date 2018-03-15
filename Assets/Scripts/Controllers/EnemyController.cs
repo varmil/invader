@@ -9,9 +9,6 @@ using UnityEngine;
  */
 public class EnemyController : MonoBehaviour
 {
-    // 下に侵略する際に1回でどの程度移動するか
-    private static readonly float MovingAmountY = 1f;
-
     // trueなら敵は動かない
     public bool IsPausing
     {
@@ -73,10 +70,10 @@ public class EnemyController : MonoBehaviour
         enemyCloud = transform.Find("Lines").GetComponent<EnemyCloud>();
     }
 
-    public IEnumerable<Enemy> CreateEnemies()
+    public IEnumerable<Enemy> CreateEnemies(int stageNum)
     {
         // return flatten values
-        return enemyCloud.CreateEnemies().SelectMany(e => e);
+        return enemyCloud.CreateEnemies(stageNum).SelectMany(e => e);
     }
 
     public IEnumerator StartFiring()
@@ -101,7 +98,7 @@ public class EnemyController : MonoBehaviour
                     yield return enemyCloud.MoveLeft(MovingAmountX);
                     break;
                 case MoveDirection.Down:
-                    yield return enemyCloud.MoveDown(MovingAmountY);
+                    yield return enemyCloud.MoveDown(Constants.Stage.InvadedYPosPerMove);
                     break;
             }
 

@@ -107,12 +107,12 @@ public class EnemyCloud : MonoBehaviour
         this.lines.Add(third);
         this.lines.Add(fourth);
         this.lines.Add(fifth);
-
-        SetLinesInitialPosition();
     }
 
-    public IEnumerable<Enemy>[] CreateEnemies()
+    public IEnumerable<Enemy>[] CreateEnemies(int stageNum)
     {
+        SetLinesInitialPosition(stageNum);
+
         return Enumerable
             .Range(0, this.Lines.Count)
             .Select((i) => this.lines[i].CreateEnemies())
@@ -174,11 +174,14 @@ public class EnemyCloud : MonoBehaviour
         }
     }
 
-    private void SetLinesInitialPosition()
+    private void SetLinesInitialPosition(int stageNum)
     {
+        var firstLineYPos = Constants.Stage.FirstLineYPos - (Constants.Stage.InvadedYPosPerStage * stageNum);
+        Debug.Log("first line y pos is " + firstLineYPos.ToString());
+
         for (int i = 0; i < this.lines.Count; i++)
         {
-            this.lines[i].transform.position = new Vector3(0f, Constants.Stage.FirstLineYPos - (i * 1.5f), 0f);
+            this.lines[i].transform.position = new Vector3(0f, firstLineYPos - (i * 1.5f), 0f);
         }
     }
 }

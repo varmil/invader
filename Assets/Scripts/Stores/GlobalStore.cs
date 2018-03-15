@@ -7,6 +7,7 @@ public class GlobalStore : Subject
     {
         this.PlayerStore = new PlayerStore();
         this.ScoreStore = new ScoreStore();
+        this.StageStore = new StageStore();
     }
 
     public PlayerStore PlayerStore
@@ -15,6 +16,11 @@ public class GlobalStore : Subject
     }
 
     public ScoreStore ScoreStore
+    {
+        get;
+    }
+
+    public StageStore StageStore
     {
         get;
     }

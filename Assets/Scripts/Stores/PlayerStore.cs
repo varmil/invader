@@ -1,5 +1,5 @@
 ﻿/**
- * Observableなスコア管理クラス
+ * Observableなプレイヤ情報管理クラス
  */
 public class PlayerStore : Subject
 {

@@ -49,6 +49,7 @@ public class Beam : MonoBehaviour, IDamageable
 
     public void TakeDamage(GameObject attacker, Collider collided)
     {
-        Debug.Log("TakeDamage attacker is " + attacker.name);
+        // TODO: play beam explosion effect
+        // Debug.Log("TakeDamage attacker is " + attacker.name);
     }
 }
