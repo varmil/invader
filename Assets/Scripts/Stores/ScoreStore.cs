@@ -35,17 +35,25 @@ public class ScoreStore : Subject
 
     public void SetDefault()
     {
+        SetDefaultHiScore();
+        SetDefaultCurrentScore();
+    }
+
+    public void SetDefaultHiScore()
+    {
         HiScore = 0;
+    }
+
+    public void SetDefaultCurrentScore()
+    {
         CurrentScore = 0;
     }
 
-    // 加算
     public void AddScore(int value)
     {
         CurrentScore += value;
     }
 
-    // Set Current to Hi
     public void UpdateHiScore()
     {
         HiScore = CurrentScore;

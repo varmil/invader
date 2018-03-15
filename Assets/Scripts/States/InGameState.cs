@@ -96,7 +96,7 @@ public class InGameState : AppState, IAppState
 
         // reset store
         GameProcessManager.Instance.GlobalStore.PlayerStore.SetDefault();
-        GameProcessManager.Instance.GlobalStore.ScoreStore.SetDefault();
+        GameProcessManager.Instance.GlobalStore.ScoreStore.SetDefaultCurrentScore();
 
         // TODO: load Hi-Score from DB
     }
