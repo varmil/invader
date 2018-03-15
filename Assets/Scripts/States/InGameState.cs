@@ -49,7 +49,8 @@ public class InGameState : AppState, IAppState
         // player process
         InitializePlayerController();
 
-        // enemy process (nothing to do)
+        // enemy process
+        InitializeEnemyController();
 
         // ui process
         uiController.Initialize(GameProcessManager.Instance.GlobalStore);
@@ -125,17 +126,7 @@ public class InGameState : AppState, IAppState
 
         playerController.OnDeadAnimationStart = () =>
         {
-            // 強制停止し、敵撃破時のストップモーションも中断
-            isPausingGame = true;
-            if (PausingEnemyCoroutine != null)
-            {
-                StopCoroutine(PausingEnemyCoroutine);
-                PausingEnemyCoroutine = null;
-            }
-            playerController.Pause();
-            enemyController.Pause();
-
-            // change all material color to red
+            PauseGame();
             MaterialManager.Instance.ChangeAllColorRed();
         };
 
@@ -155,6 +146,16 @@ public class InGameState : AppState, IAppState
             }
         };
         MaterialManager.Instance.Add(playerController.Player.GetComponentsInChildren<MeshRenderer>());
+    }
+
+    private void InitializeEnemyController()
+    {
+        enemyController.OnDeadLineReached = () =>
+        {
+            PauseGame();
+            MaterialManager.Instance.ChangeAllColorRed();
+            StartCoroutine(GameOver());
+        };
     }
 
     /// <summary>
@@ -207,6 +208,22 @@ public class InGameState : AppState, IAppState
         yield return new WaitForSeconds(0.3f);
 
         StartCoroutine(enemyController.StartFiring());
+    }
+
+    /// <summary>
+    /// Pause entire the Game
+    /// </summary>
+    private void PauseGame()
+    {
+        // 強制停止し、敵撃破時のストップモーションも中断
+        isPausingGame = true;
+        if (PausingEnemyCoroutine != null)
+        {
+            StopCoroutine(PausingEnemyCoroutine);
+            PausingEnemyCoroutine = null;
+        }
+        playerController.Pause();
+        enemyController.Pause();
     }
 
     /// <summary>

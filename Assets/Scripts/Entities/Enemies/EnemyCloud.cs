@@ -48,7 +48,7 @@ public class EnemyCloud : MonoBehaviour
         get
         {
             //Debug.Log("Cloud RightEnd::" + Mathf.Max(Lines.Select((l) => l.RightEnd).ToArray()).ToString());
-            return Mathf.Max(Lines.Select((l) => l.RightEnd).ToArray());
+            return Mathf.Max(Lines.Select(l => l.RightEnd).ToArray());
         }
     }
 
@@ -57,7 +57,16 @@ public class EnemyCloud : MonoBehaviour
         get
         {
             //Debug.Log("Cloud LeftEnd::" + Mathf.Min(Lines.Select((e) => e.LeftEnd).ToArray()).ToString());
-            return Mathf.Min(Lines.Select((e) => e.LeftEnd).ToArray());
+            return Mathf.Min(Lines.Select(l => l.LeftEnd).ToArray());
+        }
+    }
+
+    public float BottomEnd
+    {
+        get
+        {
+            // Debug.Log("Cloud BottomEnd::" + this.Lines.Where(l => !l.IsAllDead).Last().transform.position.y.ToString());
+            return this.Lines.Where(l => !l.IsAllDead).Last().transform.position.y;
         }
     }
 
@@ -144,7 +153,6 @@ public class EnemyCloud : MonoBehaviour
             }
 
             var enemy = this.beamManager.GetRandomFireableEnemy();
-            //Debug.Log(string.Join(", ", beamManager.GetFireableEnemies().Select(e => e.Id).ToArray()));
 
             if (enemy != null)
             {
@@ -177,7 +185,6 @@ public class EnemyCloud : MonoBehaviour
     private void SetLinesInitialPosition(int stageNum)
     {
         var firstLineYPos = Constants.Stage.FirstLineYPos - (Constants.Stage.InvadedYPosPerStage * stageNum);
-        Debug.Log("first line y pos is " + firstLineYPos.ToString());
 
         for (int i = 0; i < this.lines.Count; i++)
         {

@@ -20,6 +20,9 @@ public class EnemyController : MonoBehaviour
         get { return enemyCloud.AliveEnemies; }
     }
 
+    // デッドラインに到達したときのcallback
+    public Action OnDeadLineReached { get; set; }
+
     // 移動終了後から次の移動までの秒間隔の逆数
     // 敵の残存数が少なくなるほどスピードアップ
     private float MovingInterval
@@ -99,6 +102,12 @@ public class EnemyController : MonoBehaviour
                     break;
                 case MoveDirection.Down:
                     yield return enemyCloud.MoveDown(Constants.Stage.InvadedYPosPerMove);
+                    // check whether the enemy reaches dead line or not
+                    if (enemyCloud.BottomEnd < Constants.Stage.DeadLineOfYPos)
+                    {
+                        OnDeadLineReached();
+                        yield break;
+                    }
                     break;
             }
 
