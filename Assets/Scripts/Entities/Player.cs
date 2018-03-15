@@ -30,7 +30,7 @@ public class Player : MonoBehaviour, IDamageable
 
     // 自機の死亡処理が始まった際のcallback
     public Action OnDeadAnimationStart { get; set; }
-    
+
     // callback when the object should be invisible
     public Action OnDead { get; set; }
 
@@ -39,7 +39,7 @@ public class Player : MonoBehaviour, IDamageable
 
     private GameObject beamPrefab;
     private MeshFilter meshFilter;
-    
+
     void Awake()
     {
         beamPrefab = (GameObject)Resources.Load("Prefabs/PlayerBeam");
@@ -80,8 +80,6 @@ public class Player : MonoBehaviour, IDamageable
         // beam callback
         beam.GetComponent<Beam>().OnCollided = (other) =>
         {
-            ObjectPool.Instance.Release(beam);
-
             // check other is Enemy or Tochka or not
             var parent = other.transform.parent;
             if (parent != null)
@@ -98,6 +96,8 @@ public class Player : MonoBehaviour, IDamageable
                     OnEnemyDefeated(enemy);
                 }
             }
+
+            ObjectPool.Instance.Release(beam);
         };
     }
 
@@ -129,7 +129,7 @@ public class Player : MonoBehaviour, IDamageable
         yield return new WaitForSeconds(0.06f);
 
         OnDead();
-        
+
         // アニメーション終了まで適当に待つ
         yield return new WaitForSeconds(1f);
     }

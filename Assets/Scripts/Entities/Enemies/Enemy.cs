@@ -25,11 +25,11 @@ public class Enemy : MonoBehaviour, IDamageable, IEnemy
     {
         get { return transform.localScale.y; }
     }
-	
-	/// <summary>
-	/// callback when the object should be invisible
-	/// </summary>
-	public Action OnDead { get; set; }
+
+    /// <summary>
+    /// callback when the object should be invisible
+    /// </summary>
+    public Action OnDead { get; set; }
 
     // 移動時に動的にメッシュ差し替えを行う
     [SerializeField]
@@ -70,8 +70,6 @@ public class Enemy : MonoBehaviour, IDamageable, IEnemy
         // beam callback
         beam.GetComponent<Beam>().OnCollided = (other) =>
         {
-            ObjectPool.Instance.Release(beam);
-
             // check other is Player or Tochka or not
             var parent = other.transform.parent;
             if (parent != null)
@@ -82,6 +80,8 @@ public class Enemy : MonoBehaviour, IDamageable, IEnemy
                     damageable.TakeDamage(gameObject, other);
                 }
             }
+
+            ObjectPool.Instance.Release(beam);
         };
     }
 

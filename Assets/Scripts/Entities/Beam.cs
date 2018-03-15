@@ -4,7 +4,7 @@ using UnityEngine;
 /**
  * Enemy, Player が射出するビーム
  */
-public class Beam : MonoBehaviour
+public class Beam : MonoBehaviour, IDamageable
 {
     // ここまで到達したらビームをプールに戻す
     [SerializeField]
@@ -45,5 +45,10 @@ public class Beam : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         OnCollided(other);
+    }
+
+    public void TakeDamage(GameObject attacker, Collider collided)
+    {
+        Debug.Log("TakeDamage attacker is " + attacker.name);
     }
 }
