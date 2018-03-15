@@ -88,7 +88,7 @@ public class InGameState : AppState, IAppState
                 MaterialManager.Instance.RestoreAllColor();
                 StartCoroutine(RebornGame());
             }
-            // game over
+            // GameOver
             else
             {
                 StartCoroutine(GameOver());
@@ -111,6 +111,9 @@ public class InGameState : AppState, IAppState
         // restore UI color
         MaterialManager.Instance.RestoreTextsColor();
         uiController.ShowGameOver();
+
+        // TODO: register Hi-Score to Store
+        GameProcessManager.Instance.GlobalStore.ScoreStore.UpdateHiScore();
 
         yield return new WaitForSeconds(0.8f);
 

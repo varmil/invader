@@ -45,9 +45,9 @@ public class ScoreStore : Subject
         CurrentScore += value;
     }
 
-    // 上書き
-    public void UpdateHiScore(int value)
+    // Set Current to Hi
+    public void UpdateHiScore()
     {
-        HiScore = value;
+        HiScore = CurrentScore;
     }
 }

@@ -6,7 +6,8 @@ public class ScoreView : MonoBehaviour, IObserver
 {
     private static readonly int PaddingWidth = 5;
 
-    private Text label;
+    private Text currentScore;
+    private Text hiScore;
 
     private ScoreStore dataSource;
     public ScoreStore DataSource
@@ -17,18 +18,25 @@ public class ScoreView : MonoBehaviour, IObserver
             value.Subscribe(this);
             dataSource = value;
 
-            // get initial value
-            ValueChanged(dataSource.CurrentScore);
+            // set initial value
+            SetFromDataSource();
         }
     }
 
     void Awake()
     {
-        label = GetComponent<Text>();
+        currentScore = transform.Find("Score1Value").GetComponent<Text>();
+        hiScore = transform.Find("Hi-ScoreValue").GetComponent<Text>();
     }
 
     public void ValueChanged(object value)
     {
-        label.text = value.ToString().PadLeft(PaddingWidth, '0');
+        SetFromDataSource();
+    }
+
+    private void SetFromDataSource()
+    {
+        currentScore.text = dataSource.CurrentScore.ToString().PadLeft(PaddingWidth, '0');
+        hiScore.text = dataSource.HiScore.ToString().PadLeft(PaddingWidth, '0');
     }
 }

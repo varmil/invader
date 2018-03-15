@@ -26,7 +26,7 @@ public class InGameUIController : MonoBehaviour
     void Awake()
     {
         inGameView = transform.Find("InGame").gameObject;
-        currentScoreView = inGameView.transform.Find("Header/Score1Value").GetComponent<ScoreView>();
+        currentScoreView = inGameView.transform.Find("Header").GetComponent<ScoreView>();
         playerLifeView = inGameView.transform.Find("Footer/Life").GetComponent<PlayerLifeView>();
         gameOverView = inGameView.transform.Find("GameOver").gameObject;
 

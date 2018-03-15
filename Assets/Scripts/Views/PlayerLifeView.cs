@@ -15,7 +15,7 @@ public class PlayerLifeView : MonoBehaviour, IObserver
             dataSource = value;
 
             // get initial value
-            ValueChanged(dataSource.Life);
+            SetFromDataSource();
         }
     }
 
@@ -26,6 +26,11 @@ public class PlayerLifeView : MonoBehaviour, IObserver
 
     public void ValueChanged(object value)
     {
-        label.text = value.ToString();
+        SetFromDataSource();
+    }
+
+    private void SetFromDataSource()
+    {
+        label.text = dataSource.Life.ToString();
     }
 }
