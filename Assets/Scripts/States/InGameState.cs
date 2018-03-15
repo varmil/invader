@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -80,16 +81,17 @@ public class InGameState : AppState, IAppState
 
         playerController.OnDeadAnimationEnd = () =>
         {
-            // 復活チェック
+            // reborn
             if (GameProcessManager.Instance.GlobalStore.PlayerStore.Life > 0)
             {
                 GameProcessManager.Instance.GlobalStore.PlayerStore.DecrementLife();
                 MaterialManager.Instance.RestoreAllColor();
                 StartCoroutine(RebornGame());
             }
+            // game over
             else
             {
-                // TODO: game over
+                StartCoroutine(GameOver());
             }
         };
         MaterialManager.Instance.Add(playerController.Player.GetComponentsInChildren<MeshRenderer>());
@@ -102,6 +104,28 @@ public class InGameState : AppState, IAppState
         MaterialManager.Instance.Add(uiController.Texts);
 
         yield return null;
+    }
+
+    private IEnumerator GameOver()
+    {
+        // restore UI color
+        MaterialManager.Instance.RestoreTextsColor();
+        uiController.ShowGameOver();
+
+        yield return new WaitForSeconds(0.8f);
+
+        // wait for key press
+        while (true)
+        {
+            if (Input.anyKeyDown)
+            {
+                // TODO: go to ranking scene
+                GameProcessManager.Instance.SetState(GetComponent<TitleState>());
+                yield break;
+            }
+
+            yield return null;
+        }
     }
 
     public override IEnumerator OnFadeOutEnd()

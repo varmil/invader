@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class MaterialManager : SingletonMonoBehaviour<MaterialManager>
 {
@@ -29,7 +30,7 @@ public class MaterialManager : SingletonMonoBehaviour<MaterialManager>
         // create red material for Game objects
         redStandardMaterial = new Material(Shader.Find("Standard"));
         redStandardMaterial.color = Color.red;
-        
+
         // create red material for UI text
         redUIMaterial = new Material(Shader.Find("UI/Default"));
         redUIMaterial.color = Color.red;
@@ -40,7 +41,7 @@ public class MaterialManager : SingletonMonoBehaviour<MaterialManager>
     /// </summary>
     public void Add(MeshRenderer mesh)
     {
-        MeshRenderers [mesh.gameObject.GetInstanceID()] = mesh;
+        MeshRenderers[mesh.gameObject.GetInstanceID()] = mesh;
     }
 
     public void Add(IEnumerable<MeshRenderer> meshes)
@@ -53,28 +54,30 @@ public class MaterialManager : SingletonMonoBehaviour<MaterialManager>
     /// </summary>
     public void Add(Text text)
     {
-        Texts [text.gameObject.GetInstanceID()] = text;
+        Texts[text.gameObject.GetInstanceID()] = text;
     }
 
     public void Add(IEnumerable<Text> texts)
     {
         texts.ToList().ForEach(f => this.Add(f));
     }
-    
+
     /// <summary>
     /// iterate the dictionaries and switch the material
     /// </summary>
     public void ChangeAllColorRed()
     {
         // switch Game object's material
-        MeshRenderers.Values.ToList().ForEach(e => {
-            originalGameMaterials [e.GetInstanceID()] = e.material;
+        MeshRenderers.Values.ToList().ForEach(e =>
+        {
+            originalGameMaterials[e.GetInstanceID()] = e.material;
             e.material = redStandardMaterial;
         });
 
         // switch UI material
-        Texts.Values.ToList().ForEach(e => {
-            originalUIMaterials [e.GetInstanceID()] = e.material;
+        Texts.Values.ToList().ForEach(e =>
+        {
+            originalUIMaterials[e.GetInstanceID()] = e.material;
             e.material = redUIMaterial;
         });
     }
@@ -84,17 +87,27 @@ public class MaterialManager : SingletonMonoBehaviour<MaterialManager>
     /// </summary>
     public void RestoreAllColor()
     {
-        MeshRenderers.Values.ToList().ForEach(e => {
+        MeshRenderers.Values.ToList().ForEach(e =>
+        {
             if (originalGameMaterials.ContainsKey(e.GetInstanceID()))
             {
-                e.material = originalGameMaterials [e.GetInstanceID()];
+                e.material = originalGameMaterials[e.GetInstanceID()];
             }
         });
 
-        Texts.Values.ToList().ForEach(e => {
+        RestoreTextsColor();
+    }
+
+    /// <summary>
+    /// iterate the dictionaries and restore the original material (UI only)
+    /// </summary>
+    public void RestoreTextsColor()
+    {
+        Texts.Values.ToList().ForEach(e =>
+        {
             if (originalUIMaterials.ContainsKey(e.GetInstanceID()))
             {
-                e.material = originalUIMaterials [e.GetInstanceID()];
+                e.material = originalUIMaterials[e.GetInstanceID()];
             }
         });
     }

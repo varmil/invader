@@ -19,6 +19,7 @@ public class InGameUIController : MonoBehaviour
 
     private ScoreView currentScoreView;
     private PlayerLifeView playerLifeView;
+    private GameObject gameOverView;
 
     private GlobalStore globalStore;
 
@@ -27,6 +28,7 @@ public class InGameUIController : MonoBehaviour
         inGameView = transform.Find("InGame").gameObject;
         currentScoreView = inGameView.transform.Find("Header/Score1Value").GetComponent<ScoreView>();
         playerLifeView = inGameView.transform.Find("Footer/Life").GetComponent<PlayerLifeView>();
+        gameOverView = inGameView.transform.Find("GameOver").gameObject;
 
         SetAllTexts();
     }
@@ -39,9 +41,11 @@ public class InGameUIController : MonoBehaviour
 
     public void Initialize(GlobalStore store)
     {
-        globalStore = store;
+        // initial state
+        HideGameOver();
 
         // set datasource
+        globalStore = store;
         currentScoreView.DataSource = globalStore.ScoreStore;
         playerLifeView.DataSource = globalStore.PlayerStore;
     }
@@ -54,6 +58,16 @@ public class InGameUIController : MonoBehaviour
     public void HideInGame()
     {
         inGameView.SetActive(false);
+    }
+
+    public void ShowGameOver()
+    {
+        gameOverView.SetActive(true);
+    }
+
+    public void HideGameOver()
+    {
+        gameOverView.SetActive(false);
     }
 
     private void SetAllTexts()
