@@ -9,6 +9,7 @@ using UnityEngine;
  */
 public class EnemyController : MonoBehaviour
 {
+    // 下に侵略する際に1回でどの程度移動するか
     private static readonly float MovingAmountY = 1f;
 
     // trueなら敵は動かない
