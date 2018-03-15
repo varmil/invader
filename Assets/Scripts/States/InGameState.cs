@@ -43,13 +43,66 @@ public class InGameState : AppState, IAppState
         playerController = entities.GetComponentInChildren<PlayerController>();
         uiController = ui.GetComponent<InGameUIController>();
 
-        // reset this state
+        // init own class
         Initialize();
 
-
-
-
         // player process
+        InitializePlayerController();
+
+        // enemy process (nothing to do)
+
+        // ui process
+        uiController.Initialize(GameProcessManager.Instance.GlobalStore);
+        MaterialManager.Instance.Add(uiController.Texts);
+
+        yield return null;
+    }
+
+    public override IEnumerator OnFadeOutEnd()
+    {
+        // player process
+        playerController.EnableMoving();
+
+        // enemy process
+        StartCoroutine(MakeEnemiesAppear());
+        StartCoroutine(MakeUFOAppear());
+
+        yield return null;
+    }
+
+    public override void Tick()
+    {
+        if (!pressedEscape && Input.GetKeyDown(KeyCode.Escape))
+        {
+            pressedEscape = true;
+            // go to title scene
+            GameProcessManager.Instance.SetState(GetComponent<TitleState>());
+        }
+    }
+
+    public override IEnumerator OnLeave()
+    {
+        yield return StartCoroutine(base.OnLeave());
+    }
+
+    /// <summary>
+    /// このクラス自体の初期化処理
+    /// </summary>
+    private void Initialize()
+    {
+        // reset member
+        isPausingGame = false;
+        pressedEscape = false;
+
+        // reset store
+        GameProcessManager.Instance.GlobalStore.PlayerStore.SetDefault();
+        GameProcessManager.Instance.GlobalStore.ScoreStore.SetDefault();
+
+        // TODO: load Hi-Score from DB
+    }
+
+    private void InitializePlayerController()
+    {
         playerController.Initialize();
         playerController.OnEnemyDefeated = (enemy) =>
         {
@@ -95,79 +148,6 @@ public class InGameState : AppState, IAppState
             }
         };
         MaterialManager.Instance.Add(playerController.Player.GetComponentsInChildren<MeshRenderer>());
-
-
-
-
-        // ui process
-        uiController.Initialize(GameProcessManager.Instance.GlobalStore);
-        MaterialManager.Instance.Add(uiController.Texts);
-
-        yield return null;
-    }
-
-    private IEnumerator GameOver()
-    {
-        // restore UI color
-        MaterialManager.Instance.RestoreTextsColor();
-        uiController.ShowGameOver();
-
-        // TODO: register Hi-Score to Store
-        GameProcessManager.Instance.GlobalStore.ScoreStore.UpdateHiScore();
-
-        yield return new WaitForSeconds(0.8f);
-
-        // wait for key press
-        while (true)
-        {
-            if (Input.anyKeyDown)
-            {
-                // TODO: go to ranking scene
-                GameProcessManager.Instance.SetState(GetComponent<TitleState>());
-                yield break;
-            }
-
-            yield return null;
-        }
-    }
-
-    public override IEnumerator OnFadeOutEnd()
-    {
-        // player process
-        playerController.EnableMoving();
-
-        // enemy process
-        StartCoroutine(MakeEnemiesAppear());
-        StartCoroutine(MakeUFOAppear());
-
-        yield return null;
-    }
-
-    public override void Tick()
-    {
-        if (!pressedEscape && Input.GetKeyDown(KeyCode.Escape))
-        {
-            pressedEscape = true;
-
-            // go to title scene
-            GameProcessManager.Instance.SetState(GetComponent<TitleState>());
-        }
-    }
-
-    public override IEnumerator OnLeave()
-    {
-        yield return StartCoroutine(base.OnLeave());
-    }
-
-    private void Initialize()
-    {
-        // reset member
-        isPausingGame = false;
-        pressedEscape = false;
-
-        // reset store
-        GameProcessManager.Instance.GlobalStore.PlayerStore.SetDefault();
-        GameProcessManager.Instance.GlobalStore.ScoreStore.SetDefault();
     }
 
     /// <summary>
@@ -232,5 +212,34 @@ public class InGameState : AppState, IAppState
 
         isPausingGame = false;
         enemyController.Resume();
+    }
+
+    private IEnumerator GameOver()
+    {
+        // restore UI color
+        MaterialManager.Instance.RestoreTextsColor();
+        uiController.ShowGameOver();
+
+        // register Hi-Score to the store if it is new record
+        var scoreStore = GameProcessManager.Instance.GlobalStore.ScoreStore;
+        if (scoreStore.CurrentScore > scoreStore.HiScore)
+        {
+            scoreStore.UpdateHiScore();
+        }
+
+        yield return new WaitForSeconds(0.8f);
+
+        // wait for key press
+        while (true)
+        {
+            if (Input.anyKeyDown)
+            {
+                // TODO: go to ranking scene
+                GameProcessManager.Instance.SetState(GetComponent<TitleState>());
+                yield break;
+            }
+
+            yield return null;
+        }
     }
 }
