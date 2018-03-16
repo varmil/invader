@@ -1,5 +1,8 @@
 ﻿namespace Constants
 {
+    /// <summary>
+    /// ステージ進行に関する定数クラス
+    /// </summary>
     public static class Stage
     {
         // Zoneの端座標(X)
@@ -19,5 +22,14 @@
         public static readonly float UFOYPos = FirstLineYPos + 2f;
         public static readonly float UFOLeftEnd = LeftEnd - 5f;
         public static readonly float UFORightEnd = RightEnd + 5f;
+
+        // （Invader）緑 --> 青 --> ピンク --> 黄 --> 赤 の変化基準y座標（exclusive）
+        // これを下回ったタイミングで色変化させる
+        public static readonly float InvaderGreenYPos = FirstLineYPos;
+        public static readonly float InvaderBlueYPos = FirstLineYPos - 2f;
+        public static readonly float InvaderPinkYPos = FirstLineYPos - 5f;
+        public static readonly float InvaderYellowYPos = FirstLineYPos - 8f;
+        public static readonly float InvaderRedYPos = FirstLineYPos - 11f;
+
     }
 }

@@ -67,16 +67,29 @@ public class EnemyController : MonoBehaviour
     // 下方向へ移動した後の移動方向を決定するのに使用する
     private MoveDirection previousMoveDirection;
 
+    // color container of enemy
+    private Dictionary<EnemyColor, Material> materials = new Dictionary<EnemyColor, Material>(5);
+
     void Awake()
     {
         ufoPrefab = (GameObject)Resources.Load("Prefabs/Enemies/UFO");
         enemyCloud = transform.Find("Lines").GetComponent<EnemyCloud>();
+
+        // set materials
+        materials[EnemyColor.Green] = (Material)Resources.Load("Materials/Enemies/Green");
+        materials[EnemyColor.Blue] = (Material)Resources.Load("Materials/Enemies/Blue");
+        materials[EnemyColor.Pink] = (Material)Resources.Load("Materials/Enemies/Pink");
+        materials[EnemyColor.Yellow] = (Material)Resources.Load("Materials/Enemies/Yellow");
+        materials[EnemyColor.Red] = (Material)Resources.Load("Materials/Enemies/Red");
     }
 
     public IEnumerable<Enemy> CreateEnemies(int stageNum)
     {
-        // return flatten values
-        return enemyCloud.CreateEnemies(stageNum).SelectMany(e => e);
+        // flatten values
+        var enemies = enemyCloud.CreateEnemies(stageNum).SelectMany(e => e);
+        // set initial color
+        ChangeColor();
+        return enemies;
     }
 
     public IEnumerator StartFiring()
@@ -102,6 +115,10 @@ public class EnemyController : MonoBehaviour
                     break;
                 case MoveDirection.Down:
                     yield return enemyCloud.MoveDown(Constants.Stage.InvadedYPosPerMove);
+
+                    // enemy color should be changed depending on current y position
+                    ChangeColor();
+
                     // check whether the enemy reaches dead line or not
                     if (enemyCloud.BottomEnd < Constants.Stage.DeadLineOfYPos)
                     {
@@ -115,6 +132,43 @@ public class EnemyController : MonoBehaviour
             previousMoveDirection = currentMoveDirection;
             currentMoveDirection = nextDir;
         }
+    }
+
+    private void ChangeColor()
+    {
+        enemyCloud.Lines.Where(l => !l.IsAllDead).ToList().ForEach(l =>
+        {
+            var currentY = l.transform.position.y;
+            Material nextMaterial = null;
+
+            if (currentY < Constants.Stage.InvaderRedYPos)
+            {
+                nextMaterial = materials[EnemyColor.Red];
+            }
+            else if (currentY < Constants.Stage.InvaderYellowYPos)
+            {
+                nextMaterial = materials[EnemyColor.Yellow];
+            }
+            else if (currentY < Constants.Stage.InvaderPinkYPos)
+            {
+                nextMaterial = materials[EnemyColor.Pink];
+            }
+            else if (currentY < Constants.Stage.InvaderBlueYPos)
+            {
+                nextMaterial = materials[EnemyColor.Blue];
+            }
+            else
+            {
+                nextMaterial = materials[EnemyColor.Green];
+            }
+
+            // HACK: this changes every time, so should be added some conditions to change color
+            l.AliveEnemies.ToList().ForEach(e =>
+            {
+                var mesh = e.GetComponentInChildren<MeshRenderer>();
+                mesh.material = nextMaterial;
+            });
+        });
     }
 
     public UFO MakeUFOAppear()

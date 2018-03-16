@@ -9,7 +9,11 @@ using UnityEngine;
 public class EnemyCloud : MonoBehaviour
 {
     // 敵のbeam発射間隔ベース値
-    private static readonly float BaseFiringIntervalSec = 0.8f;
+    private static readonly float BaseFiringIntervalSec = 0.75f;
+
+    // 各ライン間の距離
+    private static readonly float LineSpaceY = 1.5f;
+
     // 敵のスコア
     private static readonly int ScoreOfUpper = 30;
     private static readonly int ScoreOfMiddle = 20;
@@ -188,7 +192,7 @@ public class EnemyCloud : MonoBehaviour
 
         for (int i = 0; i < this.lines.Count; i++)
         {
-            this.lines[i].transform.position = new Vector3(0f, firstLineYPos - (i * 1.5f), 0f);
+            this.lines[i].transform.position = new Vector3(0f, firstLineYPos - (i * LineSpaceY));
         }
     }
 }
