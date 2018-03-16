@@ -54,6 +54,20 @@ public class Enemy : MonoBehaviour, IDamageable, IEnemy
         meshesRingBuffer.MoveNext();
     }
 
+    void OnTriggerEnter(Collider other)
+    {
+        // check other is damageable
+        var parent = other.transform.parent;
+        if (parent != null)
+        {
+            var damageable = parent.GetComponent<IDamageable>();
+            if (damageable != null)
+            {
+                damageable.TakeDamage(gameObject, other);
+            }
+        }
+    }
+
     public void Initialize(string id, int score)
     {
         this.Alive = true;
