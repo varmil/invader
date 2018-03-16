@@ -70,6 +70,9 @@ public class InGameState : AppState, IAppState
         if (!pressedEscape && Input.GetKeyDown(KeyCode.Escape))
         {
             pressedEscape = true;
+
+            // reset current stage info
+            GameProcessManager.Instance.GlobalStore.StageStore.SetDefault();
             // go to title scene
             GameProcessManager.Instance.SetState(GetComponent<TitleState>());
         }
