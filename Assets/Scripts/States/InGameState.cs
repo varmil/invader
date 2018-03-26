@@ -45,10 +45,8 @@ public class InGameState : AppState, IAppState
 
         // init own class
         Initialize();
-
         // player process
         InitializePlayerController();
-
         // enemy process
         InitializeEnemyController();
 
@@ -67,6 +65,8 @@ public class InGameState : AppState, IAppState
 
     public override void Tick()
     {
+        base.Tick();
+
         if (!pressedEscape && Input.GetKeyDown(KeyCode.Escape))
         {
             pressedEscape = true;

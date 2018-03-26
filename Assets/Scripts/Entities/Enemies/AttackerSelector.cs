@@ -2,16 +2,16 @@
 using System.Linq;
 
 /**
- * ビームの射出管理
+ * 敵集団の中で次に誰がビームするかを決めるロジック
  */
-public class BeamManager
+public class AttackerSelector
 {
     // 1行に何体の敵がデフォルトで存在するか
     private static readonly int ColumnsNumber = 11;
 
     private readonly List<EnemyLine> lines;
 
-    public BeamManager(List<EnemyLine> lines)
+    public AttackerSelector(List<EnemyLine> lines)
     {
         this.lines = lines;
     }

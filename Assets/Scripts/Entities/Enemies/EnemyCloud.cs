@@ -81,7 +81,7 @@ public class EnemyCloud : MonoBehaviour
         set;
     }
 
-    private BeamManager beamManager;
+    private AttackerSelector attackerSelector;
     private GameObject squidPrefab;
     private GameObject crabPrefab;
     private GameObject octopusPrefab;
@@ -97,8 +97,7 @@ public class EnemyCloud : MonoBehaviour
         InitializeLines();
 
         // instantiate POCO
-        this.beamManager = new BeamManager(this.Lines);
-
+        this.attackerSelector = new AttackerSelector(this.Lines);
     }
 
     private void InitializeLines()
@@ -156,7 +155,7 @@ public class EnemyCloud : MonoBehaviour
                 yield return null;
             }
 
-            var enemy = this.beamManager.GetRandomFireableEnemy();
+            var enemy = this.attackerSelector.GetRandomFireableEnemy();
 
             if (enemy != null)
             {

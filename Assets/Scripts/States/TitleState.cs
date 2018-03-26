@@ -28,6 +28,8 @@ public class TitleState : AppState, IAppState
 
     public override void Tick()
     {
+        base.Tick();
+
         if (!pressed && Input.GetKeyDown(KeyCode.Space))
         {
             pressed = true;

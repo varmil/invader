@@ -28,7 +28,6 @@ public abstract class AppState : MonoBehaviour, IAppState
         Debug.Log("[AppState] OnEnter END");
     }
 
-
     /// <summary>
     /// called every frame
     /// </summary>
