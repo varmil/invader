@@ -80,6 +80,7 @@ public class Player : MonoBehaviour, IDamageable
         // beam callback
         beam.GetComponent<Beam>().OnCollided = (other) =>
         {
+            // TODO: this process should be delegated ? (ex: Damager.cs)
             // check other is Enemy or Tochka or not
             var parent = other.transform.parent;
             if (parent != null)
@@ -93,6 +94,8 @@ public class Player : MonoBehaviour, IDamageable
                 var enemy = parent.GetComponent<IEnemy>();
                 if (enemy != null)
                 {
+                    // HACK: is it good to trigger this event on Player class ?
+                    // (IScoreable)
                     OnEnemyDefeated(enemy);
                 }
             }

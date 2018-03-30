@@ -1,4 +1,5 @@
-﻿// the subject is an enemy object
+﻿// TODO: to IScoreable ?
+// the subject is an enemy object
 public interface IEnemy
 {
     int Score

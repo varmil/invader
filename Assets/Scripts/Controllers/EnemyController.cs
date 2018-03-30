@@ -63,7 +63,6 @@ public class EnemyController : MonoBehaviour
 
     // 初期は右方向
     private MoveDirection currentMoveDirection = MoveDirection.Right;
-
     // 下方向へ移動した後の移動方向を決定するのに使用する
     private MoveDirection previousMoveDirection;
 
