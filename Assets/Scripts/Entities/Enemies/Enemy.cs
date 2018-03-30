@@ -42,7 +42,7 @@ public class Enemy : MonoBehaviour, IDamageable, IEnemy
     private MeshFilter meshFilter;
 
     // states
-    private IEnumerator<Mesh> meshesRingBuffer;
+    private IEnumerator<Mesh> meshRingBuffer;
 
     void Awake()
     {
@@ -50,8 +50,8 @@ public class Enemy : MonoBehaviour, IDamageable, IEnemy
 
         // （メッシュ）移動時に差し替える。
         meshFilter = transform.Find("Model").GetComponent<MeshFilter>();
-        meshesRingBuffer = meshes.Repeat().GetEnumerator();
-        meshesRingBuffer.MoveNext();
+        meshRingBuffer = meshes.Repeat().GetEnumerator();
+        meshRingBuffer.MoveNext();
     }
 
     void OnTriggerEnter(Collider other)
@@ -104,10 +104,10 @@ public class Enemy : MonoBehaviour, IDamageable, IEnemy
         // メッシュ差し替えでアニメーションさせる
         {
             // 循環バッファなので必ず取得できる想定
-            if (!meshesRingBuffer.MoveNext())
+            if (!meshRingBuffer.MoveNext())
                 throw new MissingReferenceException("meshesRingBuffer.MoveNext() is FALSE");
 
-            meshFilter.mesh = meshesRingBuffer.Current;
+            meshFilter.mesh = meshRingBuffer.Current;
         }
     }
 

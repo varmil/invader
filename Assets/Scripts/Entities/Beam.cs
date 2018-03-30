@@ -8,7 +8,7 @@ public class Beam : MonoBehaviour, IDamageable
 {
     // ここまで到達したらビームをプールに戻す
     [SerializeField]
-    private float releaseYPos = -20f;
+    private float releaseYPosAbs = 20f;
 
     // 弾速
     [SerializeField]
@@ -31,12 +31,8 @@ public class Beam : MonoBehaviour, IDamageable
         var vector = (Direction == BeamVector.Down) ? Vector3.down : Vector3.up;
         transform.position += vector * speed;
 
-        if (Direction == BeamVector.Down && transform.position.y < releaseYPos)
-        {
-            ObjectPool.Instance.Release(gameObject);
-        }
-
-        if (Direction == BeamVector.Up && transform.position.y > releaseYPos)
+        // release self
+        if (Mathf.Abs(transform.position.y) > releaseYPosAbs)
         {
             ObjectPool.Instance.Release(gameObject);
         }
