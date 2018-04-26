@@ -17,7 +17,7 @@ public class GameProcessManager : MonoBehaviour
         SetState(GetComponent<TitleState>());
     }
 
-    private void Update()
+    void Update()
     {
         currentState.Tick();
     }
