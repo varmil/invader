@@ -31,7 +31,12 @@
         public static readonly float InvaderYellowYPos = FirstLineYPos - 8f;
         public static readonly float InvaderRedYPos = FirstLineYPos - 11f;
 
+        // UFOが出現する間隔（開始から25秒間隔）
+        public static readonly float UFOInterval = 25f;
         // UFOはインベーダーの数が残り7体以下になると出現しなくなる
         public static readonly int UFONotAppearingThreshold = 7;
+
+        // 敵撃破時にこの秒数だけ全体が止まる
+        public static readonly float EnemyPausingSec = 0.3f;
     }
 }

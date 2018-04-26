@@ -5,18 +5,16 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/**
+ * READY, RUNNING, GAMEOVER, PAUSE
+ * など、さらに細かくStateごとに管理するかどうかは悩みどころ
+ */
 public class InGameState : AppState, IAppState
 {
     public override string SceneName
     {
         get { return "InGameScene"; }
     }
-
-    // 敵撃破時にこの秒数だけ全体が止まる
-    private static readonly float PausingSec = 0.3f;
-
-    // UFOが出現する間隔（開始から25秒間隔）
-    private static readonly float UFOInterval = 25f;
 
     private EnemyController enemyController;
     private PlayerController playerController;
@@ -180,7 +178,7 @@ public class InGameState : AppState, IAppState
     {
         while (true)
         {
-            yield return new WaitForSeconds(UFOInterval);
+            yield return new WaitForSeconds(Constants.Stage.UFOInterval);
 
             // do not appear while Game is pausing
             while (isPausingGame) yield return null;
@@ -232,7 +230,7 @@ public class InGameState : AppState, IAppState
     private IEnumerator PauseEnemiesShortly()
     {
         enemyController.Pause();
-        yield return new WaitForSeconds(PausingSec);
+        yield return new WaitForSeconds(Constants.Stage.EnemyPausingSec);
         enemyController.Resume();
 
         PausingEnemyCoroutine = null;
