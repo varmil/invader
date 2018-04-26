@@ -5,6 +5,10 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+/**
+ * READY, RUNNING, GAMEOVER, PAUSE
+ * など、さらに細かくStateごとに管理するかどうかは悩みどころ
+ */
 public class InGameState : AppState, IAppState
 {
     public override string SceneName
@@ -12,15 +16,10 @@ public class InGameState : AppState, IAppState
         get { return "InGameScene"; }
     }
 
-    // 敵撃破時にこの秒数だけ全体が止まる
-    private static readonly float PausingSec = 0.3f;
-
-    // UFOが出現する間隔（開始から25秒間隔）
-    private static readonly float UFOInterval = 25f;
-
     private EnemyController enemyController;
     private PlayerController playerController;
     private InGameUIController uiController;
+    private MaterialController materialController;
 
     private Coroutine PausingEnemyCoroutine = null;
     private bool pressedEscape = false;
@@ -40,6 +39,9 @@ public class InGameState : AppState, IAppState
         playerController = entities.GetComponentInChildren<PlayerController>();
         uiController = ui.GetComponent<InGameUIController>();
 
+        // only this class uses MaterialManager
+        materialController = new MaterialController();
+
         // init own class
         Initialize();
         // player process
@@ -48,15 +50,15 @@ public class InGameState : AppState, IAppState
         InitializeEnemyController();
 
         // ui process
-        uiController.Initialize(GameProcessManager.Instance.GlobalStore);
-        MaterialManager.Instance.Add(uiController.Texts);
+        uiController.Initialize(GlobalStore.Instance);
+        materialController.Add(uiController.Texts);
 
         yield return null;
     }
 
     public override IEnumerator OnFadeOutEnd()
     {
-        StartStage(GameProcessManager.Instance.GlobalStore.StageStore.CurrentStage);
+        StartStage(GlobalStore.Instance.StageStore.CurrentStage);
         yield return null;
     }
 
@@ -69,9 +71,9 @@ public class InGameState : AppState, IAppState
             pressedEscape = true;
 
             // reset current stage info
-            GameProcessManager.Instance.GlobalStore.StageStore.SetDefault();
+            GlobalStore.Instance.StageStore.SetDefault();
             // go to title scene
-            GameProcessManager.Instance.SetState(GetComponent<TitleState>());
+            NextStateSet(GetComponent<TitleState>());
         }
     }
 
@@ -90,7 +92,7 @@ public class InGameState : AppState, IAppState
         pressedEscape = false;
 
         // reset store if it is 1st stage
-        var globalStore = GameProcessManager.Instance.GlobalStore;
+        var globalStore = GlobalStore.Instance;
         if (globalStore.StageStore.CurrentStage == 0)
         {
             globalStore.PlayerStore.SetDefault();
@@ -106,14 +108,14 @@ public class InGameState : AppState, IAppState
         playerController.OnEnemyDefeated = (enemy) =>
         {
             // add score
-            GameProcessManager.Instance.GlobalStore.ScoreStore.AddScore(enemy.Score);
+            GlobalStore.Instance.ScoreStore.AddScore(enemy.Score);
 
             // go to next stage if enemies are all dead
             if (enemyController.AliveEnemies.Count() == 0)
             {
                 // reload the scene
-                GameProcessManager.Instance.GlobalStore.StageStore.IncrementStage();
-                GameProcessManager.Instance.SetState(GetComponent<InGameState>());
+                GlobalStore.Instance.StageStore.IncrementStage();
+                NextStateSet(GetComponent<InGameState>());
                 return;
             }
 
@@ -127,16 +129,16 @@ public class InGameState : AppState, IAppState
         playerController.OnDeadAnimationStart = () =>
         {
             PauseGame();
-            MaterialManager.Instance.ChangeAllColorRed();
+            materialController.ChangeAllColorRed();
         };
 
         playerController.OnDeadAnimationEnd = () =>
         {
             // reborn
-            if (GameProcessManager.Instance.GlobalStore.PlayerStore.Life > 0)
+            if (GlobalStore.Instance.PlayerStore.Life > 0)
             {
-                GameProcessManager.Instance.GlobalStore.PlayerStore.DecrementLife();
-                MaterialManager.Instance.RestoreAllColor();
+                GlobalStore.Instance.PlayerStore.DecrementLife();
+                materialController.RestoreAllColor();
                 StartCoroutine(RebornGame());
             }
             // GameOver
@@ -145,7 +147,7 @@ public class InGameState : AppState, IAppState
                 StartCoroutine(GameOver());
             }
         };
-        MaterialManager.Instance.Add(playerController.Player.GetComponentsInChildren<MeshRenderer>());
+        materialController.Add(playerController.Player.GetComponentsInChildren<MeshRenderer>());
     }
 
     private void InitializeEnemyController()
@@ -153,7 +155,7 @@ public class InGameState : AppState, IAppState
         enemyController.OnDeadLineReached = () =>
         {
             PauseGame();
-            MaterialManager.Instance.ChangeAllColorRed();
+            materialController.ChangeAllColorRed();
             StartCoroutine(GameOver());
         };
     }
@@ -163,10 +165,10 @@ public class InGameState : AppState, IAppState
     /// </summary>
     private void StartStage(int stageNum)
     {
-        Debug.Log("Start Stage " + GameProcessManager.Instance.GlobalStore.StageStore.CurrentStage);
+        Debug.Log("Start Stage " + GlobalStore.Instance.StageStore.CurrentStage);
 
         // player process
-        playerController.EnableMoving();
+        playerController.Resume();
 
         // enemy process
         StartCoroutine(MakeEnemiesAppear(stageNum));
@@ -180,7 +182,7 @@ public class InGameState : AppState, IAppState
     {
         while (true)
         {
-            yield return new WaitForSeconds(UFOInterval);
+            yield return new WaitForSeconds(Constants.Stage.UFOInterval);
 
             // do not appear while Game is pausing
             while (isPausingGame) yield return null;
@@ -188,7 +190,7 @@ public class InGameState : AppState, IAppState
             if (enemyController.AliveEnemies.Count() > Constants.Stage.UFONotAppearingThreshold)
             {
                 var ufo = enemyController.MakeUFOAppear();
-                MaterialManager.Instance.Add(ufo.GetComponentInChildren<MeshRenderer>());
+                materialController.Add(ufo.GetComponentInChildren<MeshRenderer>());
             }
         }
     }
@@ -199,7 +201,7 @@ public class InGameState : AppState, IAppState
     private IEnumerator MakeEnemiesAppear(int stageNum)
     {
         var enemies = enemyController.CreateEnemies(stageNum);
-        MaterialManager.Instance.Add(enemies.Select(e => e.GetComponentInChildren<MeshRenderer>()));
+        materialController.Add(enemies.Select(e => e.GetComponentInChildren<MeshRenderer>()));
 
         yield return new WaitForSeconds(0.3f);
 
@@ -232,7 +234,7 @@ public class InGameState : AppState, IAppState
     private IEnumerator PauseEnemiesShortly()
     {
         enemyController.Pause();
-        yield return new WaitForSeconds(PausingSec);
+        yield return new WaitForSeconds(Constants.Stage.EnemyPausingSec);
         enemyController.Resume();
 
         PausingEnemyCoroutine = null;
@@ -256,11 +258,11 @@ public class InGameState : AppState, IAppState
     private IEnumerator GameOver()
     {
         // restore UI color
-        MaterialManager.Instance.RestoreTextsColor();
+        materialController.RestoreTextsColor();
         uiController.ShowGameOver();
 
         // register Hi-Score to the store if it is new record
-        var globalStore = GameProcessManager.Instance.GlobalStore;
+        var globalStore = GlobalStore.Instance;
         if (globalStore.ScoreStore.CurrentScore > globalStore.ScoreStore.HiScore)
         {
             globalStore.ScoreStore.UpdateHiScore();
@@ -277,7 +279,7 @@ public class InGameState : AppState, IAppState
             if (Input.anyKeyDown)
             {
                 // TODO: go to ranking scene
-                GameProcessManager.Instance.SetState(GetComponent<TitleState>());
+                NextStateSet(GetComponent<TitleState>());
                 yield break;
             }
 

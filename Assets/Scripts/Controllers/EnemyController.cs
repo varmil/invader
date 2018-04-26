@@ -133,6 +133,39 @@ public class EnemyController : MonoBehaviour
         }
     }
 
+    public UFO MakeUFOAppear()
+    {
+        var direction = (UFOMoveDirection)UnityEngine.Random.Range(0, 2);
+        var pos = (direction == UFOMoveDirection.Right)
+            ? new Vector3(Constants.Stage.UFOLeftEnd, Constants.Stage.UFOYPos)
+            : new Vector3(Constants.Stage.UFORightEnd, Constants.Stage.UFOYPos);
+
+        var ufo = ObjectPool.Instance.Get(ufoPrefab, pos, Quaternion.identity);
+        var component = ufo.GetComponent<UFO>();
+
+        // init
+        var movingVector = (direction == UFOMoveDirection.Right) ? Vector3.right : Vector3.left;
+        component.Initialize(movingVector);
+
+        // set callback handler
+        component.OnGone = () => ObjectPool.Instance.Release(ufo);
+        component.OnDead = () => ObjectPool.Instance.Release(ufo);
+
+        component.StartMoving();
+
+        return component;
+    }
+
+    public void Pause()
+    {
+        enemyCloud.IsPausing = true;
+    }
+
+    public void Resume()
+    {
+        enemyCloud.IsPausing = false;
+    }
+
     private void ChangeColor()
     {
         enemyCloud.Lines.Where(l => !l.IsAllDead).ToList().ForEach(l =>
@@ -168,39 +201,6 @@ public class EnemyController : MonoBehaviour
                 mesh.material = nextMaterial;
             });
         });
-    }
-
-    public UFO MakeUFOAppear()
-    {
-        var direction = (UFOMoveDirection)UnityEngine.Random.Range(0, 2);
-        var pos = (direction == UFOMoveDirection.Right)
-            ? new Vector3(Constants.Stage.UFOLeftEnd, Constants.Stage.UFOYPos)
-            : new Vector3(Constants.Stage.UFORightEnd, Constants.Stage.UFOYPos);
-
-        var ufo = ObjectPool.Instance.Get(ufoPrefab, pos, Quaternion.identity);
-        var component = ufo.GetComponent<UFO>();
-
-        // init
-        var movingVector = (direction == UFOMoveDirection.Right) ? Vector3.right : Vector3.left;
-        component.Initialize(movingVector);
-
-        // set callback handler
-        component.OnGone = () => ObjectPool.Instance.Release(ufo);
-        component.OnDead = () => ObjectPool.Instance.Release(ufo);
-
-        component.StartMoving();
-
-        return component;
-    }
-
-    public void Pause()
-    {
-        enemyCloud.IsPausing = true;
-    }
-
-    public void Resume()
-    {
-        enemyCloud.IsPausing = false;
     }
 
     private MoveDirection CalcNextMoveDirection()

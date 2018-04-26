@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System;
 
 public abstract class AppState : MonoBehaviour, IAppState
 {
@@ -10,6 +11,11 @@ public abstract class AppState : MonoBehaviour, IAppState
     {
         get;
     }
+
+    /// <summary>
+    /// called when the state is changed
+    /// </summary>
+    public Action<AppState> NextStateSet { get; set; }
 
     /// <summary>
     /// load <SceneName>, and that is set to active scene

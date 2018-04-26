@@ -5,14 +5,18 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 
-public class MaterialManager : SingletonMonoBehaviour<MaterialManager>
+/**
+ * this class manipulates Material Color Changing
+ */
+public class MaterialController
 {
     private static readonly int DefaultCapacity = 1000;
 
-    // separate the dict because UI use UI/Default shader, and others use Standard shader
-    // key is instance id
+    /**
+     * separate the dict because UI use UI/Default shader, 
+     * and others use Standard shader key is instance id
+     */
     public Dictionary<int, MeshRenderer> MeshRenderers { get; private set; }
-
     public Dictionary<int, Text> Texts { get; private set; }
 
     private Dictionary<int, Material> originalGameMaterials;
@@ -20,7 +24,7 @@ public class MaterialManager : SingletonMonoBehaviour<MaterialManager>
     private Material redStandardMaterial;
     private Material redUIMaterial;
 
-    void Awake()
+    public MaterialController()
     {
         MeshRenderers = new Dictionary<int, MeshRenderer>(DefaultCapacity);
         Texts = new Dictionary<int, Text>(DefaultCapacity);

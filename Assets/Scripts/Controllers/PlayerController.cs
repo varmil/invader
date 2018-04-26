@@ -59,7 +59,7 @@ public class PlayerController : MonoBehaviour
         InitializePlayer();
     }
 
-    public void EnableMoving()
+    public void Resume()
     {
         CanMove = true;
     }
@@ -67,11 +67,6 @@ public class PlayerController : MonoBehaviour
     public void Pause()
     {
         CanMove = false;
-    }
-
-    public void Resume()
-    {
-        CanMove = true;
     }
 
     public IEnumerator Reborn()

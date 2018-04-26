@@ -35,7 +35,7 @@ public class TitleState : AppState, IAppState
             pressed = true;
 
             // go to game scene
-            GameProcessManager.Instance.SetState(GetComponent<InGameState>());
+            NextStateSet(GetComponent<InGameState>());
         }
     }
 
