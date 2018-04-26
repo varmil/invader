@@ -19,6 +19,7 @@ public class InGameState : AppState, IAppState
     private EnemyController enemyController;
     private PlayerController playerController;
     private InGameUIController uiController;
+    private MaterialManager materialManager;
 
     private Coroutine PausingEnemyCoroutine = null;
     private bool pressedEscape = false;
@@ -38,6 +39,9 @@ public class InGameState : AppState, IAppState
         playerController = entities.GetComponentInChildren<PlayerController>();
         uiController = ui.GetComponent<InGameUIController>();
 
+        // only this class uses MaterialManager
+        materialManager = new MaterialManager();
+
         // init own class
         Initialize();
         // player process
@@ -47,7 +51,7 @@ public class InGameState : AppState, IAppState
 
         // ui process
         uiController.Initialize(GameProcessManager.Instance.GlobalStore);
-        MaterialManager.Instance.Add(uiController.Texts);
+        materialManager.Add(uiController.Texts);
 
         yield return null;
     }
@@ -125,7 +129,7 @@ public class InGameState : AppState, IAppState
         playerController.OnDeadAnimationStart = () =>
         {
             PauseGame();
-            MaterialManager.Instance.ChangeAllColorRed();
+            materialManager.ChangeAllColorRed();
         };
 
         playerController.OnDeadAnimationEnd = () =>
@@ -134,7 +138,7 @@ public class InGameState : AppState, IAppState
             if (GameProcessManager.Instance.GlobalStore.PlayerStore.Life > 0)
             {
                 GameProcessManager.Instance.GlobalStore.PlayerStore.DecrementLife();
-                MaterialManager.Instance.RestoreAllColor();
+                materialManager.RestoreAllColor();
                 StartCoroutine(RebornGame());
             }
             // GameOver
@@ -143,7 +147,7 @@ public class InGameState : AppState, IAppState
                 StartCoroutine(GameOver());
             }
         };
-        MaterialManager.Instance.Add(playerController.Player.GetComponentsInChildren<MeshRenderer>());
+        materialManager.Add(playerController.Player.GetComponentsInChildren<MeshRenderer>());
     }
 
     private void InitializeEnemyController()
@@ -151,7 +155,7 @@ public class InGameState : AppState, IAppState
         enemyController.OnDeadLineReached = () =>
         {
             PauseGame();
-            MaterialManager.Instance.ChangeAllColorRed();
+            materialManager.ChangeAllColorRed();
             StartCoroutine(GameOver());
         };
     }
@@ -186,7 +190,7 @@ public class InGameState : AppState, IAppState
             if (enemyController.AliveEnemies.Count() > Constants.Stage.UFONotAppearingThreshold)
             {
                 var ufo = enemyController.MakeUFOAppear();
-                MaterialManager.Instance.Add(ufo.GetComponentInChildren<MeshRenderer>());
+                materialManager.Add(ufo.GetComponentInChildren<MeshRenderer>());
             }
         }
     }
@@ -197,7 +201,7 @@ public class InGameState : AppState, IAppState
     private IEnumerator MakeEnemiesAppear(int stageNum)
     {
         var enemies = enemyController.CreateEnemies(stageNum);
-        MaterialManager.Instance.Add(enemies.Select(e => e.GetComponentInChildren<MeshRenderer>()));
+        materialManager.Add(enemies.Select(e => e.GetComponentInChildren<MeshRenderer>()));
 
         yield return new WaitForSeconds(0.3f);
 
@@ -254,7 +258,7 @@ public class InGameState : AppState, IAppState
     private IEnumerator GameOver()
     {
         // restore UI color
-        MaterialManager.Instance.RestoreTextsColor();
+        materialManager.RestoreTextsColor();
         uiController.ShowGameOver();
 
         // register Hi-Score to the store if it is new record
