@@ -19,7 +19,7 @@ public class InGameState : AppState, IAppState
     private EnemyController enemyController;
     private PlayerController playerController;
     private InGameUIController uiController;
-    private MaterialManager materialManager;
+    private MaterialController materialController;
 
     private Coroutine PausingEnemyCoroutine = null;
     private bool pressedEscape = false;
@@ -40,7 +40,7 @@ public class InGameState : AppState, IAppState
         uiController = ui.GetComponent<InGameUIController>();
 
         // only this class uses MaterialManager
-        materialManager = new MaterialManager();
+        materialController = new MaterialController();
 
         // init own class
         Initialize();
@@ -50,15 +50,15 @@ public class InGameState : AppState, IAppState
         InitializeEnemyController();
 
         // ui process
-        uiController.Initialize(GameProcessManager.Instance.GlobalStore);
-        materialManager.Add(uiController.Texts);
+        uiController.Initialize(GlobalStore.Instance);
+        materialController.Add(uiController.Texts);
 
         yield return null;
     }
 
     public override IEnumerator OnFadeOutEnd()
     {
-        StartStage(GameProcessManager.Instance.GlobalStore.StageStore.CurrentStage);
+        StartStage(GlobalStore.Instance.StageStore.CurrentStage);
         yield return null;
     }
 
@@ -71,9 +71,9 @@ public class InGameState : AppState, IAppState
             pressedEscape = true;
 
             // reset current stage info
-            GameProcessManager.Instance.GlobalStore.StageStore.SetDefault();
+            GlobalStore.Instance.StageStore.SetDefault();
             // go to title scene
-            GameProcessManager.Instance.SetState(GetComponent<TitleState>());
+            NextStateSet(GetComponent<TitleState>());
         }
     }
 
@@ -92,7 +92,7 @@ public class InGameState : AppState, IAppState
         pressedEscape = false;
 
         // reset store if it is 1st stage
-        var globalStore = GameProcessManager.Instance.GlobalStore;
+        var globalStore = GlobalStore.Instance;
         if (globalStore.StageStore.CurrentStage == 0)
         {
             globalStore.PlayerStore.SetDefault();
@@ -108,14 +108,14 @@ public class InGameState : AppState, IAppState
         playerController.OnEnemyDefeated = (enemy) =>
         {
             // add score
-            GameProcessManager.Instance.GlobalStore.ScoreStore.AddScore(enemy.Score);
+            GlobalStore.Instance.ScoreStore.AddScore(enemy.Score);
 
             // go to next stage if enemies are all dead
             if (enemyController.AliveEnemies.Count() == 0)
             {
                 // reload the scene
-                GameProcessManager.Instance.GlobalStore.StageStore.IncrementStage();
-                GameProcessManager.Instance.SetState(GetComponent<InGameState>());
+                GlobalStore.Instance.StageStore.IncrementStage();
+                NextStateSet(GetComponent<InGameState>());
                 return;
             }
 
@@ -129,16 +129,16 @@ public class InGameState : AppState, IAppState
         playerController.OnDeadAnimationStart = () =>
         {
             PauseGame();
-            materialManager.ChangeAllColorRed();
+            materialController.ChangeAllColorRed();
         };
 
         playerController.OnDeadAnimationEnd = () =>
         {
             // reborn
-            if (GameProcessManager.Instance.GlobalStore.PlayerStore.Life > 0)
+            if (GlobalStore.Instance.PlayerStore.Life > 0)
             {
-                GameProcessManager.Instance.GlobalStore.PlayerStore.DecrementLife();
-                materialManager.RestoreAllColor();
+                GlobalStore.Instance.PlayerStore.DecrementLife();
+                materialController.RestoreAllColor();
                 StartCoroutine(RebornGame());
             }
             // GameOver
@@ -147,7 +147,7 @@ public class InGameState : AppState, IAppState
                 StartCoroutine(GameOver());
             }
         };
-        materialManager.Add(playerController.Player.GetComponentsInChildren<MeshRenderer>());
+        materialController.Add(playerController.Player.GetComponentsInChildren<MeshRenderer>());
     }
 
     private void InitializeEnemyController()
@@ -155,7 +155,7 @@ public class InGameState : AppState, IAppState
         enemyController.OnDeadLineReached = () =>
         {
             PauseGame();
-            materialManager.ChangeAllColorRed();
+            materialController.ChangeAllColorRed();
             StartCoroutine(GameOver());
         };
     }
@@ -165,7 +165,7 @@ public class InGameState : AppState, IAppState
     /// </summary>
     private void StartStage(int stageNum)
     {
-        Debug.Log("Start Stage " + GameProcessManager.Instance.GlobalStore.StageStore.CurrentStage);
+        Debug.Log("Start Stage " + GlobalStore.Instance.StageStore.CurrentStage);
 
         // player process
         playerController.EnableMoving();
@@ -190,7 +190,7 @@ public class InGameState : AppState, IAppState
             if (enemyController.AliveEnemies.Count() > Constants.Stage.UFONotAppearingThreshold)
             {
                 var ufo = enemyController.MakeUFOAppear();
-                materialManager.Add(ufo.GetComponentInChildren<MeshRenderer>());
+                materialController.Add(ufo.GetComponentInChildren<MeshRenderer>());
             }
         }
     }
@@ -201,7 +201,7 @@ public class InGameState : AppState, IAppState
     private IEnumerator MakeEnemiesAppear(int stageNum)
     {
         var enemies = enemyController.CreateEnemies(stageNum);
-        materialManager.Add(enemies.Select(e => e.GetComponentInChildren<MeshRenderer>()));
+        materialController.Add(enemies.Select(e => e.GetComponentInChildren<MeshRenderer>()));
 
         yield return new WaitForSeconds(0.3f);
 
@@ -258,11 +258,11 @@ public class InGameState : AppState, IAppState
     private IEnumerator GameOver()
     {
         // restore UI color
-        materialManager.RestoreTextsColor();
+        materialController.RestoreTextsColor();
         uiController.ShowGameOver();
 
         // register Hi-Score to the store if it is new record
-        var globalStore = GameProcessManager.Instance.GlobalStore;
+        var globalStore = GlobalStore.Instance;
         if (globalStore.ScoreStore.CurrentScore > globalStore.ScoreStore.HiScore)
         {
             globalStore.ScoreStore.UpdateHiScore();
@@ -279,7 +279,7 @@ public class InGameState : AppState, IAppState
             if (Input.anyKeyDown)
             {
                 // TODO: go to ranking scene
-                GameProcessManager.Instance.SetState(GetComponent<TitleState>());
+                NextStateSet(GetComponent<TitleState>());
                 yield break;
             }
 

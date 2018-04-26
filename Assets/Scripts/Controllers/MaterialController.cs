@@ -5,7 +5,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 
-public class MaterialManager
+/**
+ * this class manipulates Material Color Changing
+ */
+public class MaterialController
 {
     private static readonly int DefaultCapacity = 1000;
 
@@ -21,7 +24,7 @@ public class MaterialManager
     private Material redStandardMaterial;
     private Material redUIMaterial;
 
-    public MaterialManager()
+    public MaterialController()
     {
         MeshRenderers = new Dictionary<int, MeshRenderer>(DefaultCapacity);
         Texts = new Dictionary<int, Text>(DefaultCapacity);

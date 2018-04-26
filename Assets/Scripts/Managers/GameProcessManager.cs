@@ -5,23 +5,12 @@ using UnityEngine;
 /**
  * ゲームの進行管理
  */
-public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
+public class GameProcessManager : MonoBehaviour
 {
-    public GlobalStore GlobalStore
-    {
-        get;
-        private set;
-    }
-
     [SerializeField]
     private Fade fader = null;
 
     private AppState currentState;
-
-    void Awake()
-    {
-        this.GlobalStore = new GlobalStore();
-    }
 
     void Start()
     {
@@ -33,7 +22,7 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
         currentState.Tick();
     }
 
-    public void SetState(AppState state)
+    private void SetState(AppState state)
     {
         StartCoroutine(SetStateCoroutine(state));
     }
@@ -46,7 +35,11 @@ public class GameProcessManager : SingletonMonoBehaviour<GameProcessManager>
             yield return StartCoroutine(currentState.OnLeave());
         }
 
+        // set next state
         currentState = state;
+
+        // Dependency Inversion
+        currentState.NextStateSet = (nextState) => this.SetState(nextState);
 
         if (currentState != null)
         {
