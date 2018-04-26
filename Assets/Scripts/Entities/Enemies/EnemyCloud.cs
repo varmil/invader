@@ -75,11 +75,7 @@ public class EnemyCloud : MonoBehaviour
     }
 
     // 外からsetする。trueなら敵は動かない
-    public bool IsPausing
-    {
-        get;
-        set;
-    }
+    public bool IsPausing { get; set; }
 
     private AttackerSelector attackerSelector;
     private GameObject squidPrefab;
@@ -123,7 +119,7 @@ public class EnemyCloud : MonoBehaviour
 
     public IEnumerable<Enemy>[] CreateEnemies(int stageNum)
     {
-        SetLinesInitialPosition(stageNum);
+        SetInitialLinesPosition(stageNum);
 
         return Enumerable
             .Range(0, this.Lines.Count)
@@ -185,7 +181,7 @@ public class EnemyCloud : MonoBehaviour
         }
     }
 
-    private void SetLinesInitialPosition(int stageNum)
+    private void SetInitialLinesPosition(int stageNum)
     {
         var firstLineYPos = Constants.Stage.FirstLineYPos - (Constants.Stage.InvadedYPosPerStage * stageNum);
 

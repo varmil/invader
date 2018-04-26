@@ -38,10 +38,6 @@ public class EnemyLine : MonoBehaviour
     private List<Enemy> enemies = new List<Enemy>(EnemyAmountPerLine);
     private GameObject enemyPrefab;
 
-    void Awake()
-    {
-    }
-
     public float RightEnd
     {
         get

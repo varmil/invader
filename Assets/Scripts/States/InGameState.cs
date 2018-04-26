@@ -168,7 +168,7 @@ public class InGameState : AppState, IAppState
         Debug.Log("Start Stage " + GlobalStore.Instance.StageStore.CurrentStage);
 
         // player process
-        playerController.EnableMoving();
+        playerController.Resume();
 
         // enemy process
         StartCoroutine(MakeEnemiesAppear(stageNum));
