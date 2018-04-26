@@ -30,5 +30,8 @@
         public static readonly float InvaderPinkYPos = FirstLineYPos - 5f;
         public static readonly float InvaderYellowYPos = FirstLineYPos - 8f;
         public static readonly float InvaderRedYPos = FirstLineYPos - 11f;
+
+        // UFOはインベーダーの数が残り7体以下になると出現しなくなる
+        public static readonly int UFONotAppearingThreshold = 7;
     }
 }

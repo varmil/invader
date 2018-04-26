@@ -16,7 +16,6 @@ public abstract class AppState : MonoBehaviour, IAppState
     /// </summary>
     public virtual IEnumerator OnEnter()
     {
-        // HACK: performance
         var ao = SceneManager.LoadSceneAsync(SceneName, LoadSceneMode.Additive);
         while (!ao.isDone)
         {

@@ -18,9 +18,6 @@ public class InGameState : AppState, IAppState
     // UFOが出現する間隔（開始から25秒間隔）
     private static readonly float UFOInterval = 25f;
 
-    // UFOはインベーダーの数が残り7体以下になると出現しなくなる
-    private static readonly float UFONotAppearingThreshold = 7;
-
     private EnemyController enemyController;
     private PlayerController playerController;
     private InGameUIController uiController;
@@ -188,7 +185,7 @@ public class InGameState : AppState, IAppState
             // do not appear while Game is pausing
             while (isPausingGame) yield return null;
 
-            if (enemyController.AliveEnemies.Count() > UFONotAppearingThreshold)
+            if (enemyController.AliveEnemies.Count() > Constants.Stage.UFONotAppearingThreshold)
             {
                 var ufo = enemyController.MakeUFOAppear();
                 MaterialManager.Instance.Add(ufo.GetComponentInChildren<MeshRenderer>());

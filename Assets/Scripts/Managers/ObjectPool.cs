@@ -16,7 +16,6 @@ public class ObjectPool : SingletonMonoBehaviour<ObjectPool>
         // Dictionaryにkeyが存在しなければ作成する
         if (pooledGameObjects.ContainsKey(key) == false)
         {
-
             pooledGameObjects.Add(key, new List<GameObject>());
         }
 
@@ -31,9 +30,7 @@ public class ObjectPool : SingletonMonoBehaviour<ObjectPool>
             // 現在非アクティブ（未使用）であれば
             if (go.activeInHierarchy == false)
             {
-                // 位置を設定する
                 go.transform.position = position;
-                // 角度を設定する
                 go.transform.rotation = rotation;
                 // これから使用するのでアクティブにする
                 go.SetActive(true);
@@ -53,7 +50,6 @@ public class ObjectPool : SingletonMonoBehaviour<ObjectPool>
     // ゲームオブジェクトを非アクティブにする。こうすることで再利用可能状態にする
     public void Release(GameObject go)
     {
-        // 非アクティブにする
         go.SetActive(false);
     }
 

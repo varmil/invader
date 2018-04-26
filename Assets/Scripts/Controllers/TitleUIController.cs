@@ -4,7 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 
 /**
- * UIの大元たる親コントローラ
+ * （Title）UIの大元たる親コントローラ
  */
 public class TitleUIController : MonoBehaviour
 {
